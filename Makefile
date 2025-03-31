@@ -138,4 +138,4 @@ distclean:  ## Delete build files, python cache and package build artifacts
 # https://docs.pytest.org/en/latest/how-to/output.html#modifying-python-traceback-printing
 .PHONY: tests
 tests:  ## Run tests
-	pytest --import-mode=importlib --numprocesses=auto --tb=short tests/
+	pytest --import-mode=importlib --numprocesses=auto --tb=short tests/ --cache-clear
