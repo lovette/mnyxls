@@ -33,7 +33,8 @@ ELLIPSIS_LEN = len("...")
 UNION_PART_TYPES = {
     "bool": bool,
     "int": int,
-    "pathlib.Path": Path,
+    "pathlib.Path": Path,  # Python 3.12
+    "pathlib._local.Path": Path,  # Python 3.13
     "str": str,
 }
 
