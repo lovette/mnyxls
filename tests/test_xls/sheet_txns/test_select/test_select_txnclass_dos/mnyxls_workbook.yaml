@@ -5,3 +5,4 @@ workbook:
       select:
         txnclass:
           - "!Essential"
+      columns: "!Era"

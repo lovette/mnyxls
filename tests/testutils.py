@@ -339,8 +339,9 @@ def create_and_compare_workbook(  # noqa: PLR0913
     resources_dir: Path,
     caplog: pytest.LogCaptureFixture,
     tmp_path_locals: Sequence[str | Path] | None = None,
+    expected_exit_code: int = 0,
     assert_warnings: bool = True,
-) -> None:
+) -> CliResult:
     """Create workbook `result.xlsx` and compare it with `expected_result.xlsx`.
 
     Uses the main configuration file `mnyxls_tests.yaml` and local workbook configuration file `mnyxls_workbook.yaml`.
@@ -353,7 +354,11 @@ def create_and_compare_workbook(  # noqa: PLR0913
         caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
         tmp_path_locals (Sequence[str | Path] | None): [out] Files to make available in the test working directory.
             Ignored if `tmp_path` is None or `USE_TMP_PATH` is False.
+        expected_exit_code (int): The expected exit code; default is 0.
         assert_warnings (bool): If True, assert that no WARNING logs were emitted.
+
+    Returns:
+        CliResult: The result of the CLI invocation.
     """
     test_cwd = Path.cwd()
     result_name = "result.xlsx"
@@ -374,18 +379,22 @@ def create_and_compare_workbook(  # noqa: PLR0913
     ]
 
     with tmp_path_cwd(tmp_path, tmp_path_locals) as runner_cwd:
-        cli_invoke(
+        result = cli_invoke(
             cli,
             cli_args,
             runner,
             caplog,
+            expected_exit_code=expected_exit_code,
             assert_warnings=assert_warnings,
         )
 
-        result_path = runner_cwd / result_name
-        assert result_path.exists(), "Expected an .xlsx file"
+        if result.exit_code == 0:
+            result_path = runner_cwd / result_name
+            assert result_path.exists(), "Expected an .xlsx file"
 
-        out_files = list(runner_cwd.glob("*.sqlite3"))
-        assert not out_files, "Expected no .sqlite3 files"
+            out_files = list(runner_cwd.glob("*.sqlite3"))
+            assert not out_files, "Expected no .sqlite3 files"
 
-        assert_compare_xlsx(result_path, test_cwd / "expected_result.xlsx")
+            assert_compare_xlsx(result_path, test_cwd / "expected_result.xlsx")
+
+    return result

@@ -2,7 +2,9 @@ workbook:
   worksheets:
     "All transactions":
       sheet_type: "txns"
+      columns: "!Era"
 
     "Consolidated yyyymm":
       sheet_type: "txns"
       consolidate: "yyyymm"
+      columns: "!Era"

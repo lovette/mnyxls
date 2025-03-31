@@ -4,3 +4,4 @@ workbook:
       sheet_type: "txns"
       select:
         txntype: "Expense"
+      columns: "!Era"

@@ -10,7 +10,8 @@ from openpyxl.cell import Cell, MergedCell
 from openpyxl.styles import PatternFill
 
 from .configtypes import WorksheetConfigOptionsTxnsPivotT, WorksheetConfigSelectTxnsPivotT
-from .dbschema import TABLE_ACCOUNTS, TABLE_CATEGORIES, TABLE_TXNS, table_schema_columns
+from .dbschema import TABLE_ACCOUNTS, TABLE_CATEGORIES, TABLE_ERAS, TABLE_TXNS, table_schema_columns
+from .dbsqlite import db_list_eras
 from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd
 from .shared import MnyXlsConfigError, MnyXlsRuntimeError, pd_read_sql, validate_config_typed_dict
@@ -73,6 +74,7 @@ PIVOT_DATEOPT_COL_MAP = MappingProxyType(
 # > Mapping[directive] = "ColumnName"
 PIVOT_INDEX_OPT_COL_MAP = MappingProxyType(
     {
+        "era": "EraName",
         "account_classification": "AccountClassification",
         "account_category": "AccountCategory",
         "account": "Account",
@@ -86,10 +88,12 @@ PIVOT_INDEX_OPT_COL_MAP = MappingProxyType(
     | PIVOT_DATEOPT_COL_MAP
 )
 
+
 # Valid options for `options.columns` configuration directive *ordered by hierarchy*.
 # > Mapping[directive] = "ColumnName"
 PIVOT_COLUMNS_OPT_COL_MAP = MappingProxyType(
     {
+        "era": "EraName",
         "account_classification": "AccountClassification",
         "account_category": "AccountCategory",
         "txntype": "TxnType",
@@ -267,7 +271,7 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
 
         self._select_columns = [*self._pivot_columns_names, *self._pivot_index_names]
 
-    def get_sheet_data(self, conn: sqlite3.Connection) -> pd.DataFrame:  # noqa: C901
+    def get_sheet_data(self, conn: sqlite3.Connection) -> pd.DataFrame:  # noqa: C901, PLR0912
         """Query database and return data to write to worksheet.
 
         ```
@@ -289,11 +293,16 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
         txns_view_columns = (*table_schema_columns(TABLE_TXNS), *table_schema_columns(TABLE_CATEGORIES))
         pivot_options: WorksheetConfigOptionsTxnsPivotT = self.worksheet_config.get("options", {})
         opt_columns_pivot_total = PIVOT_OPT_TOTAL in pivot_options.get("columns", {})
+        era_names = db_list_eras(conn) if "EraName" in select_columns else None
 
         q_select = SelectAnd(VIEW_TXNS_WITHTYPEANDCLASS, named="T")
 
         if "AccountCategory" in select_columns or "AccountClassification" in select_columns:
             q_select.join(TABLE_ACCOUNTS, ".Account")
+
+        if era_names:
+            # Join the Eras table to get Eras.rowid for sorting
+            q_select.left_join(TABLE_ERAS, ".EraName")
 
         # Select date columns
         for date_col in PIVOT_DATEOPT_COL_MAP.values():
@@ -316,7 +325,14 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
         self.apply_txns_select_where(conn, q_select, self.worksheet_config)
 
         q_select.group_by(groupby_columns)
-        q_select.order_by(groupby_columns)
+
+        orderby_columns = groupby_columns.copy()  # used for final ORDER BY
+
+        if era_names:
+            # Order Eras by date range (though this has no effect on the actual pivot table itself)
+            orderby_columns = ["Eras.rowid" if "EraName" in col else col for col in orderby_columns]
+
+        q_select.order_by(orderby_columns)
 
         df_worksheet = pd_read_sql(
             conn,
@@ -335,6 +351,13 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
             if col not in ("Amount", *PIVOT_DATEOPT_COL_MAP.values()):
                 df_worksheet[col] = df_worksheet[col].fillna("")
 
+        if era_names:
+            # Pivot tables sorted alphabetically and we want Eras to be
+            # sorted by date range (which is the order in the database.)
+            # The easiest way is to change the column type to an ordered Categorical.
+            assert "EraName" in df_worksheet.columns
+            df_worksheet["EraName"] = pd.Categorical(df_worksheet["EraName"], categories=era_names, ordered=True)
+
         # The `DateGroup` column is a datetime.date object which means the column headers of the pivot
         # table will be as well and we need to keep it that way so `to_excel` can write headers as a date.
         # If we convert it to a string, it will be written as text and Excel will not be able to format it as a date.
@@ -346,9 +369,10 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
                 index=self._pivot_index_names,
                 columns=self._pivot_columns_names,
                 values="Amount",
-                aggfunc="sum",
+                aggfunc=lambda x: x.sum(min_count=1),  # Using "sum" results in "0" instead of "NaN" when Categorical columns are present...
                 margins=True,
                 margins_name="Total",
+                observed=True,  # Only show Categorical values that are in the data.
             )
         except ValueError as err:
             raise MnyXlsRuntimeError(f"Pivot failed: {err}") from err
@@ -359,7 +383,11 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
         # Reset index to make "index column" an actual column again
         # > df_worksheet = df_worksheet.reset_index()
 
-        return df_worksheet if not opt_columns_pivot_total else df_worksheet.iloc[:, -1:]
+        if opt_columns_pivot_total:
+            # Return only the last column (which is the "Total" column)
+            return df_worksheet.iloc[:, -1:]
+
+        return df_worksheet
 
     def prepare_to_excel(self) -> None:
         """Prepare to write worksheet to workbook.

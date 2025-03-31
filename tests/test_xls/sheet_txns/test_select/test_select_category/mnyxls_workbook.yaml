@@ -4,8 +4,10 @@ workbook:
       sheet_type: "txns"
       select:
         category: "Groceries"
+      columns: "!Era"
 
     "Online shopping":
       sheet_type: "txns"
       select:
         category: "Shopping:Online"
+      columns: "!Era"

@@ -3,3 +3,4 @@ workbook:
     "Txn Types":
       sheet_type: "txns"
       foreach: "txntype"
+      columns: "!Era"

@@ -186,6 +186,7 @@ Some options do not apply to workbook selects.
 | `account` | Select transactions for named accounts. |
 | `account_category` | Select transactions for accounts by category. |
 | `account_classification` | Select transactions for accounts by classification. |
+| `era` | Select transactions for a defined era. |
 | `category` | Select transactions with given category and subcategory; `"category"` will select a category and its subcategories; `"category:subcategory"` will select specific subcategories; `"category:"` will select only the "root" category (whether it has subcategories or not.) [Worksheet only]  |
 | `payee` | Select transactions for a payee name. [Worksheet only] |
 | `txnclass` | Select transactions by class. [Worksheet only] |
@@ -215,6 +216,7 @@ The `foreach` directive creates multiple sheets based on a single criteria.
 | `account` | A worksheet for each account. | `txns`, `txns:pivot` |
 | `account_category` | A worksheet for each account category. | `txns`, `txns:pivot`, `accounts` |
 | `account_classification` | A worksheet for each account classification. | `txns`, `txns:pivot`, `accounts` |
+| `era` | A worksheet for each defined era. | `txns`, `txns:pivot` |
 | `txnclass` | A worksheet for each transaction class. | `txns`, `txns:pivot` |
 | `txntype` | A worksheet for each transaction type. | `txns`, `txns:pivot` |
 | `yyyy` | A worksheet for each year. | `txns`, `txns:pivot` |

@@ -1,0 +1,10 @@
+workbook:
+  worksheets:
+    "Category by year":
+      sheet_type: "txns:pivot"
+      foreach: "era"
+      options:
+        rows: "category"
+        columns: "yyyy"
+      select:
+        account: "Checking"

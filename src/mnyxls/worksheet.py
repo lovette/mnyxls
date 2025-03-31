@@ -59,6 +59,7 @@ FRIENDLY_COLUMN_NAMES = MappingProxyType(
         "ClosedDate": "Closed Date",
         "DateYYYY": "Year",
         "DateYYYYMM": "Month",
+        "EraName": "Era",
         "OpenedDate": "Opened Date",
         "OpeningBalance": "Opening Balance",
         "TxnClass": "Txn Class",
@@ -477,7 +478,7 @@ class MoneyWorksheet(ABC):
         """Render a worksheet name using Jinja2.
 
         Args:
-            sheet_name (str): Template string to render.
+            sheet_name (str): Template string to render. Typically this is defined by the worksheet `key`.
             template_vars (Mapping[str, Any]): Template variables.
             default_name (str): Default name if `sheet_name` is not a template.
 

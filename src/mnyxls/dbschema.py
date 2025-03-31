@@ -24,6 +24,7 @@ TABLE_ACCOUNT_BALANCES = "AccountBalances"
 TABLE_CATEGORY_BALANCES = "CategoryBalances"
 TABLE_ACCOUNTS = "Accounts"
 TABLE_CATEGORIES = "Categories"
+TABLE_ERAS = "Eras"
 TABLE_LOANS = "Loans"
 TABLE_PAYEES = "Payees"
 TABLE_TXNS = "Txns"
@@ -127,6 +128,7 @@ TABLE_SCHEMAS: dict[str, TableSchemaDict] = {
             ("C", "TEXT"),
             ("Split", "TEXT"),
             ("Memo", "TEXT"),
+            ("EraName", "TEXT"),
         ),
         "indexes": (
             ("Date", False),
@@ -140,6 +142,7 @@ TABLE_SCHEMAS: dict[str, TableSchemaDict] = {
             ("Payee", TABLE_PAYEES),
             ("XferAccount", TABLE_ACCOUNTS, "Account"),
             (("Category", "Subcategory"), TABLE_CATEGORIES),
+            ("EraName", TABLE_ERAS, "EraName"),
         ),
     },
     TABLE_TXNS_INV: {
@@ -169,6 +172,13 @@ TABLE_SCHEMAS: dict[str, TableSchemaDict] = {
         "foreign_keys": (
             ("Account", TABLE_ACCOUNTS),
             ("XferAccount", TABLE_ACCOUNTS, "Account"),
+        ),
+    },
+    TABLE_ERAS: {
+        "columns": (
+            ("EraName", "TEXT", "PRIMARY KEY"),
+            ("EraDateFrom", "DATE"),
+            ("EraDateTo", "DATE"),
         ),
     },
 }

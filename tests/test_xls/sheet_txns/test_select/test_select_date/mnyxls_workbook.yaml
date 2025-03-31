@@ -5,36 +5,42 @@ workbook:
       select:
         account: "Visa"
         date_from: "2022"
+      columns: "!Era"
 
     "Visa from 2022-12":
       sheet_type: "txns"
       select:
         account: "Visa"
         date_from: "2022-12"
+      columns: "!Era"
 
     "Visa from 2022-12-15":
       sheet_type: "txns"
       select:
         account: "Visa"
         date_from: "2022-12-15"
+      columns: "!Era"
 
     "Visa to 2018":
       sheet_type: "txns"
       select:
         account: "Visa"
         date_to: "2018"
+      columns: "!Era"
 
     "Visa to 2018-01":
       sheet_type: "txns"
       select:
         account: "Visa"
         date_to: "2018-01"
+      columns: "!Era"
 
     "Visa to 2018-01-15":
       sheet_type: "txns"
       select:
         account: "Visa"
         date_to: "2018-01-15"
+      columns: "!Era"
 
     "Visa 2018":
       sheet_type: "txns"
@@ -42,6 +48,7 @@ workbook:
         account: "Visa"
         date_from: "2018"
         date_to: "2018"
+      columns: "!Era"
 
     "Visa 2018-06":
       sheet_type: "txns"
@@ -49,6 +56,7 @@ workbook:
         account: "Visa"
         date_from: "2018-06"
         date_to: "2018-06"
+      columns: "!Era"
 
     "Visa 2018-06 to 07":
       sheet_type: "txns"
@@ -56,3 +64,4 @@ workbook:
         account: "Visa"
         date_from: "2018-06"
         date_to: "2018-07"
+      columns: "!Era"

@@ -6,13 +6,16 @@ workbook:
         account:
           - "Visa"
           - "Mastercard"
+      columns: "!Era"
 
     "Assets":
       sheet_type: "txns"
       select:
         account_classification: "Assets"
+      columns: "!Era"
 
     "Not credit cards":
       sheet_type: "txns"
       select:
         account_category: "!Credit Cards"
+      columns: "!Era"

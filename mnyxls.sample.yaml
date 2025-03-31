@@ -104,6 +104,20 @@ category_classes:
     - "Utilities"
 
 ######################################################################
+# Eras
+#
+# Each era is a defined date range that can be referenced in worksheets.
+
+eras:
+  "Era A":
+    "date_to": "2019"
+  "Era B":
+    "date_from": "2020"
+    "date_to": "2020"
+  "Era C":
+    "date_from": "2021"
+
+######################################################################
 # Excel Workbook
 #
 # The workbook can be defined in the main configuration file or a separate configuration file.

@@ -38,6 +38,7 @@ class WorksheetConfigSelectT(TypedDict):
     account_category: NotRequired[str | list[str]]
     account_classification: NotRequired[str | list[str]]
     category: NotRequired[str | list[str]]
+    era: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
     txnclass: NotRequired[str | list[str]]
     txntype: NotRequired[str | list[str]]
@@ -56,6 +57,7 @@ class WorksheetConfigSelectTxnsT(TypedDict):
     account_category: NotRequired[str | list[str]]
     account_classification: NotRequired[str | list[str]]
     category: NotRequired[str | list[str]]
+    era: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
     txnclass: NotRequired[str | list[str]]
     txntype: NotRequired[str | list[str]]
@@ -155,6 +157,16 @@ class WorksheetConfigT(TypedDict):
     _config_key: NotRequired[str]
 
 
+class ConfigEraT(TypedDict):
+    """Structure of main configuration directive `eras`."""
+
+    # `date_from` or `date_to` is required
+    date_from: NotRequired[str | date]
+    date_to: NotRequired[str | date]
+
+
+ConfigErasT = dict[str, ConfigEraT]
+
 ######################################################################
 # Typed dictionaries to describe top-level configuration file directives
 
@@ -201,6 +213,7 @@ class MainConfigFileT(CommonConfigFileT):
     data_dir: NotRequired[Path]
     db_file: NotRequired[Path]
     debug_sql: NotRequired[bool]
+    eras: NotRequired[ConfigErasT]
     import_date_from: NotRequired[str]
     import_date_range: NotRequired[tuple[date | None, date | None]]  # command line option
     import_date_to: NotRequired[str]

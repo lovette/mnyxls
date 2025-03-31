@@ -17,6 +17,7 @@ from .dbschema import (
     TABLE_ACCOUNTS,
     TABLE_CATEGORIES,
     TABLE_CATEGORY_BALANCES,
+    TABLE_ERAS,
     TABLE_LOANS,
     TABLE_PAYEES,
     TABLE_SCHEMAS,
@@ -37,10 +38,10 @@ from .report import (
 from .report_balances import MoneyReportAccountBalances
 from .report_balancesdetails import MoneyReportAccountBalancesWithDetails
 from .report_spending import MoneyReportIncomeAndSpending
-from .shared import MnyXlsConfigError, MnyXlsRuntimeError, config_warning, pd_read_sql, split_category_pair
+from .shared import MnyXlsConfigError, MnyXlsRuntimeError, config_warning, parse_yyyymmdd_flex, pd_read_sql, split_category_pair
 
 if TYPE_CHECKING:
-    from .configtypes import ConfigAccountCategoriesT, ConfigAccountsT, ConfigAccountT, MainConfigFileT
+    from .configtypes import ConfigAccountCategoriesT, ConfigAccountsT, ConfigAccountT, ConfigErasT, ConfigEraT, MainConfigFileT
     from .report import MoneyReport
 
 # SQLite creates and manages these indexes
@@ -161,7 +162,7 @@ def _list_account_classifications(conn: sqlite3.Connection) -> dict[str, list[st
 
 
 def db_get_txndates(conn: sqlite3.Connection, account_name: str | None = None) -> tuple[date | None, date | None]:
-    """Get the min and max transaction dates for an account.
+    """Get the min and max transaction dates across accounts or for an individual account.
 
     Args:
         conn (sqlite3.Connection): SQLite connection.
@@ -1238,6 +1239,172 @@ def _db_insert_category_balances(conn: sqlite3.Connection, reports: dict[ReportT
                 _insert_report(report)
 
 
+def _db_insert_eras_config(conn: sqlite3.Connection, config: MainConfigFileT) -> None:  # noqa: C901, PLR0915
+    """Insert Eras from user configuration file.
+
+    Args:
+        conn (sqlite3.Connection): SQLite connection.
+        config (dict): Configuration file settings.
+    """
+
+    def _cmp_era(a: tuple[str, ConfigEraT]) -> tuple[date, date]:
+        date_from = a[1].get("date_from")
+        date_to = a[1].get("date_to")
+
+        assert isinstance(date_from, (date, type(None)))
+        assert isinstance(date_to, (date, type(None)))  # date or None
+
+        # Ideally, eras are sorted by their start/end time ranges.
+        return date_from or date.min, date_to or date.max
+
+    def _insert_era(era_name: str, era_config: ConfigEraT) -> None:
+        date_from = era_config.get("date_from")
+        date_to = era_config.get("date_to")
+
+        q_insert = Insert(TABLE_ERAS)
+        q_insert.set_value("EraName", era_name)
+
+        if date_from:
+            q_insert.set_value("EraDateFrom", date_from)
+        if date_to:
+            q_insert.set_value("EraDateTo", date_to)
+
+        with conn:
+            _conn_execute_sql(conn, q_insert)
+
+    def _validate_and_sort_eras(config_eras: ConfigErasT) -> ConfigErasT:
+        # Validate and sort eras
+
+        valid_eras: ConfigErasT = {}
+
+        if not isinstance(config_eras, dict):
+            raise MnyXlsConfigError("Directive must be a set of key/value pairs.", config, "eras")
+
+        # Validate eras
+        for era_name, era_config in config_eras.items():
+            config_keys = ("eras", era_name)
+
+            date_from_spec = era_config.get("date_from")
+            date_to_spec = era_config.get("date_to")
+
+            for k in ("date_from", "date_to"):
+                v = era_config.get(k)
+                if v and not parse_yyyymmdd_flex(v):
+                    raise MnyXlsConfigError(f"'{v}': Invalid date spec.", config, (*config_keys, k))
+
+            date_from = parse_yyyymmdd_flex(date_from_spec, first_day=True) if isinstance(date_from_spec, str) else None
+            date_to = parse_yyyymmdd_flex(date_to_spec, first_day=False) if isinstance(date_to_spec, str) else None
+
+            if not (date_from or date_to):
+                raise MnyXlsConfigError("'date_from' or 'date_to' is required.", config, config_keys)
+
+            if date_from and date_to and date_to < date_from:
+                date_from, date_to = date_to, date_from
+
+            insert_era_config: ConfigEraT = {}
+
+            if date_from is not None:
+                insert_era_config["date_from"] = date_from
+            if date_to is not None:
+                insert_era_config["date_to"] = date_to
+
+            valid_eras[era_name] = insert_era_config
+
+        return dict(sorted(valid_eras.items(), key=_cmp_era))
+
+    def _validate_era_ranges(valid_eras: ConfigErasT) -> None:
+        # Ensure date ranges do not overlap
+
+        era_names = tuple(valid_eras.keys())
+
+        for idx in range(len(era_names) - 1):
+            era_a_key = era_names[idx]
+            era_b_key = era_names[idx + 1]
+
+            era_a = valid_eras[era_a_key]
+            era_b = valid_eras[era_b_key]
+
+            # `date_to` of each era must be less than `date_from` of next era
+            date_a = era_a.get("date_to") or date.max
+            date_b = era_b.get("date_from") or date.min
+
+            assert isinstance(date_a, date)
+            assert isinstance(date_b, date)
+
+            if date_b < date_a:
+                raise MnyXlsConfigError(
+                    f"Eras '{era_a_key}' and '{era_b_key}' have overlapping date ranges.",
+                    config,
+                    ("eras",),
+                )
+
+    config_eras: ConfigErasT | None = config.get("eras")
+    if not config_eras:
+        return
+
+    insert_eras = _validate_and_sort_eras(config_eras)
+
+    _validate_era_ranges(insert_eras)
+
+    for era_name, era_config in insert_eras.items():
+        _insert_era(era_name, era_config)
+
+
+def _db_update_txns_eras(conn: sqlite3.Connection) -> None:
+    """Update Txns to set Eras.
+
+    Args:
+        conn (sqlite3.Connection): SQLite connection.
+        config (dict): Configuration file settings.
+    """
+
+    def _apply_era(era_name: str, date_from: date | None, date_to: date | None) -> None:
+        # Update Txns with the given era
+
+        q_update = Update(TABLE_TXNS)
+        q_update.set_value("EraName", era_name)
+
+        if date_from and date_to:
+            q_update.where_raw_value("Date", "? AND ?", "BETWEEN", value_params=(date_from, date_to))
+        elif date_from is not None:
+            q_update.where_value("Date", date_from, ">=")
+        elif date_to is not None:
+            q_update.where_value("Date", date_to, "<=")
+
+        _conn_execute_sql(conn, q_update)
+
+    def _warn_era_unassigned() -> None:
+        q_select = Select(TABLE_TXNS)
+        q_select.where_value("EraName", None)
+
+        unassigned_count = _conn_execute_count_rows(conn, q_select)
+
+        if unassigned_count > 0:
+            logger.warning(f"{unassigned_count} transactions do not have an era assigned.")
+
+    df_eras = pd_read_sql(
+        conn,
+        Select(TABLE_ERAS),
+        date_cols=("EraDateFrom", "EraDateTo"),
+    )
+
+    if not df_eras.empty:
+        for row in df_eras.itertuples(index=False):
+            with conn:
+                assert isinstance(row.EraName, str)
+                assert isinstance(row.EraDateFrom, date)  # NULL will be 'NaT' which is a 'date'
+                assert isinstance(row.EraDateTo, date)  # NULL will be 'NaT' which is a 'date'
+
+                date_from = row.EraDateFrom if pd.notna(row.EraDateFrom) else None
+                date_to = row.EraDateTo if pd.notna(row.EraDateTo) else None
+
+                assert date_from or date_to
+
+                _apply_era(row.EraName, date_from, date_to)
+
+        _warn_era_unassigned()
+
+
 def _recommend_reports(conn: sqlite3.Connection) -> None:
     """Recommend reports user can run to create a more complete snapshot.
 
@@ -1377,6 +1544,9 @@ def db_create(
         _db_update_categories_config(conn, config)
         _db_update_categories_defaults(conn, config)
 
+        _db_insert_eras_config(conn, config)
+        _db_update_txns_eras(conn)
+
         _db_insert_account_balances(conn, reports)  # after _db_update_accounts_config
         _db_insert_category_balances(conn, reports)
     else:
@@ -1421,6 +1591,24 @@ def db_list_accounts(conn: sqlite3.Connection) -> list[str]:
         list[str]
     """
     return db_list_distinct(conn, TABLE_ACCOUNTS, "Account")
+
+
+def db_list_eras(conn: sqlite3.Connection) -> list[str]:
+    """List Eras ordered by date range.
+
+    Args:
+        conn (sqlite3.Connection): SQLite connection.
+
+    Returns:
+        list[str]
+    """
+    q_select = Select(TABLE_ERAS)
+    q_select.column("EraName")
+    q_select.order_by("rowid")
+
+    df_select = pd_read_sql(conn, q_select)
+
+    return df_select["EraName"].tolist() if not df_select.empty else []
 
 
 def db_list_txn_yyyy(conn: sqlite3.Connection) -> list[int]:

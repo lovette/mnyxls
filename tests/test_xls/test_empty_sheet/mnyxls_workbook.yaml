@@ -5,3 +5,4 @@ workbook:
       skipempty: False
       select:
         account: "Foo"
+      columns: "!Era"

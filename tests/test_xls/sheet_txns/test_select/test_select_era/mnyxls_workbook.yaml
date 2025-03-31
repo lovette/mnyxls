@@ -1,0 +1,6 @@
+workbook:
+  worksheets:
+    "Eras":
+      sheet_type: "txns"
+      select:
+        era: "!Era B"

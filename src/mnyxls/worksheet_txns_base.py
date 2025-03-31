@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 from mysqlstmt import Select
 
-from .dbschema import TABLE_ACCOUNTS
+from .dbschema import TABLE_ACCOUNTS, TABLE_ERAS
 from .dbsqlite import db_get_txndates
 from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd  # type: ignore[reportMissingImport]
@@ -138,6 +138,58 @@ class MoneyWorksheetTxnsBase(MoneyWorksheet):
             # Set conditions that will be applied to the SELECT query.
             # This *overwrites* any existing condition.
             worksheet_config["select"]["txnclass"] = txn_class_value
+
+            workbook.add_worksheet(cls(workbook, sheet_name, worksheet_config))
+            worksheet_count += 1
+
+        return worksheet_count
+
+    @classmethod
+    def expand_foreach_era(
+        cls,
+        workbook: MoneyWorkbook,
+        conn: sqlite3.Connection,
+        worksheet_key: str,
+        worksheet_base_config: WorksheetConfigT,
+    ) -> int:
+        """Expand `foreach` directive and add sheets to workbook.
+
+        foreach: "era"
+
+        Args:
+            workbook (MoneyWorkbook): Workbook.
+            conn (sqlite3.Connection): SQLite connection.
+            worksheet_key (str): Worksheet configuration key (typically the sheet name.)
+            worksheet_base_config (WorksheetConfigT): Worksheet configuration.
+
+        Returns:
+            int: Number of worksheets added. If 0, base worksheet will be added.
+        """
+        worksheet_count = 0
+
+        q_select = SelectAnd(TABLE_ERAS).column("EraName").order_by("rowid")
+        cls.apply_txns_select_where(conn, q_select, worksheet_base_config, allow_directives=("era",))
+
+        df_select = pd_read_sql(conn, q_select)
+
+        for row in df_select.itertuples(index=False):
+            era_name = row.EraName
+
+            assert isinstance(era_name, str)
+
+            sheet_name = cls.render_sheet_name(
+                worksheet_key,
+                {"foreach": era_name},
+                era_name,
+            )
+
+            # Create a worksheet configuration unique to each worksheet.
+            worksheet_config = cls.copy_worksheet_config(worksheet_base_config)
+            assert "select" in worksheet_config
+
+            # Set conditions that will be applied to the SELECT query.
+            # This *overwrites* any existing condition.
+            worksheet_config["select"]["era"] = era_name
 
             workbook.add_worksheet(cls(workbook, sheet_name, worksheet_config))
             worksheet_count += 1
@@ -452,6 +504,7 @@ class MoneyWorksheetTxnsBase(MoneyWorksheet):
 
         where_value_simple = {
             "account": "Account",
+            "era": "T.`EraName`",
             "payee": "Payee",
             "txnclass": "TxnClass",
             "txntype": "TxnType",

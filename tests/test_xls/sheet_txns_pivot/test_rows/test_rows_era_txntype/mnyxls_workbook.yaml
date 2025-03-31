@@ -1,0 +1,8 @@
+workbook:
+  worksheets:
+    "Txn type by Era":
+      sheet_type: "txns:pivot"
+      options:
+        rows:
+          - "era"
+          - "txntype"

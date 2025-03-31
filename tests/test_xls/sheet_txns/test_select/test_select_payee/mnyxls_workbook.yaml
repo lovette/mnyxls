@@ -4,3 +4,4 @@ workbook:
       sheet_type: "txns"
       select:
         payee: "Walmart"
+      columns: "!Era"

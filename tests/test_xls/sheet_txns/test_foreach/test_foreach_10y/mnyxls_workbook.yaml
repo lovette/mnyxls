@@ -5,3 +5,4 @@ workbook:
       foreach: "10y"
       select:
         txntype: "Expense"
+      columns: "!Era"

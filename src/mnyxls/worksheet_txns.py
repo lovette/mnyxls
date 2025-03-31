@@ -6,10 +6,11 @@ from typing import TYPE_CHECKING
 
 from .configtypes import WorksheetConfigSelectTxnsT
 from .dbschema import TABLE_TXNS, table_schema_columns
+from .dbsqlite import db_list_eras
 from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd
 from .report import TxnType
-from .shared import config_warning, get_values_and_cond, pd_read_sql, validate_config_typed_dict
+from .shared import config_warning, pd_read_sql, validate_config_typed_dict
 from .worksheet import WORKSHEET_COLWIDTH_MAX, MoneyWorksheet
 from .worksheet_txns_base import MoneyWorksheetTxnsBase
 
@@ -39,6 +40,7 @@ TXNS_WORKSHEET_COLUMNS = (
     "Memo",
     "Split",
     "C",
+    "EraName",
 )
 
 # Use a named logger instead of root logger
@@ -130,13 +132,18 @@ class MoneyWorksheetTxns(MoneyWorksheetTxnsBase):
             "account": "Account",
             "account_category": "AccountCategory",
             "account_classification": "AccountClassification",
+            "era": "EraName",
             "txnclass": "TxnClass",
             "txntype": "TxnType",
         }.items():
             if select_key in select_config:
                 maybe_drop_cols.append(table_column)
 
-        q_select = SelectAnd(VIEW_TXNS_WITHTYPEANDCLASS)
+        if not db_list_eras(conn):
+            # Exclude the "Era" column from the worksheet if no Eras are defined.
+            maybe_drop_cols.append("EraName")
+
+        q_select = SelectAnd(VIEW_TXNS_WITHTYPEANDCLASS, named="T")
 
         if consolidate is not None:
             if consolidate == "yyyymm":

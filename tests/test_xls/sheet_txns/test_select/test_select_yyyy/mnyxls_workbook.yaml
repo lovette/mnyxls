@@ -6,3 +6,4 @@ workbook:
         txntype: "Expense"
         account: "Checking"
         yyyy: "2018"
+      columns: "!Era"

@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Eras":
+      sheet_type: "txns"
+      foreach: "era"
+      select:
+        account: "Checking"

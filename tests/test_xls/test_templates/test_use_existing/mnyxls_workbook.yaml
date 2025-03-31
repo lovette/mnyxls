@@ -7,3 +7,4 @@ workbook:
         date_from: "2020-01"
         date_to: "2020-01"
       use_existing: True
+      columns: "!Era"

@@ -5,3 +5,4 @@ workbook:
       foreach: "account"
       select:
         yyyy: 2018
+      columns: "!Era"

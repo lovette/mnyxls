@@ -5,3 +5,4 @@ workbook:
       foreach: "account_category"
       select:
         txntype: "Expense"
+      columns: "!Era"

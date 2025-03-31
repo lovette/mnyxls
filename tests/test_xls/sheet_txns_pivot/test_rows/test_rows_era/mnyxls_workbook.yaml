@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Era by year":
+      sheet_type: "txns:pivot"
+      options:
+        rows:
+          - "era"
