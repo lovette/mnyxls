@@ -1,0 +1,23 @@
+workbook:
+  worksheets:
+    "Assets":
+      sheet_type: "accounts"
+      select:
+        "account_classification": "Assets"
+
+    "Not assets":
+      sheet_type: "accounts"
+      select:
+        "account_classification": "!Assets"
+
+    "Bank accounts":
+      sheet_type: "accounts"
+      select:
+        "account_category": "Bank and Cash Accounts"
+
+    "Not bank accounts":
+      sheet_type: "accounts"
+      select:
+        "account_category":
+          - "!"
+          - "Bank and Cash Accounts"

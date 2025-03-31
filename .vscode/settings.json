@@ -1,0 +1,11 @@
+// https://code.visualstudio.com/docs/python/testing
+// https://docs.pytest.org/en/latest/how-to/output.html#modifying-python-traceback-printing
+
+{
+    "python.testing.pytestArgs": [
+        "--tb=short",
+        "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

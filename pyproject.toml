@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mnyxls"
+version = "0.0.1-dev"
+description = "Create a SQLite database and/or Microsoft Excel workbook from Microsoft Money reports."
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+  # Required by pip-tools
+  "pyproject_hooks",
+
+  "click",
+  "click-option-group",
+  "jinja2",
+  "mysqlstmt@git+https://github.com/lovette/mysqlstmt",
+  "openpyxl",
+  "pandas",
+  "python-dateutil",
+  "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+  "click-man",
+  "pandas-stubs",
+  "pyright",
+  "pytest",
+  "pytest-xdist",
+  "ruff",
+]
+
+[project.scripts]
+mnyxls = "mnyxls.__main__:cli"
+
+# https://docs.astral.sh/ruff/configuration/
+[tool.ruff]
+line-length = 150
+
+# Always generate Python 3.12-compatible code.
+target-version = "py312"
+
+# https://docs.astral.sh/ruff/rules/
+[tool.ruff.lint]
+select = [
+  "ALL",
+]
+
+ignore = [
+  "D100",   # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+  "D205",   # https://docs.astral.sh/ruff/rules/blank-line-after-summary/
+  "TRY003", # https://docs.astral.sh/ruff/rules/raise-vanilla-args/
+  "EM102",  # https://docs.astral.sh/ruff/rules/f-string-in-exception/
+  "EM101",  # https://docs.astral.sh/ruff/rules/raw-string-in-exception/
+  "S101",   # https://docs.astral.sh/ruff/rules/assert/
+  "G004",   # https://docs.astral.sh/ruff/rules/logging-f-string/
+  "FBT001", # https://docs.astral.sh/ruff/rules/boolean-type-hint-positional-argument/
+  "FBT002", # https://docs.astral.sh/ruff/rules/boolean-default-value-positional-argument/
+  "ANN002", # https://docs.astral.sh/ruff/rules/missing-type-args/
+  "ANN003", # https://docs.astral.sh/ruff/rules/missing-type-kwargs/
+  "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/
+]
+
+[tool.ruff.lint.per-file-ignores]
+"gentestreports.py" = ["S311"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# https://doc.pytest.org/en/latest/explanation/goodpractices.html#conventions-for-python-test-discovery
+# https://code.visualstudio.com/docs/python/testing#_run-tests-in-parallel
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib", "--numprocesses=auto"]
+pythonpath = "src"
+
+# https://github.com/microsoft/pyright/blob/main/docs/configuration.md#sample-pyprojecttoml-file
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "standard"
+pythonVersion = "3.12"
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true

@@ -1,0 +1,17 @@
+workbook:
+  worksheets:
+    "Categories":
+      sheet_type: "accounts"
+      foreach: "account_category"
+
+    # This will produce an empty sheet because we include category "Credit Cards"
+    # but exclude all the credit card accounts.
+    "Empty sheet":
+      sheet_type: "accounts"
+      foreach: "account_category"
+      select:
+        "account_category": "Credit Cards"
+        account:
+          - "!"
+          - "Visa"
+          - "Mastercard"

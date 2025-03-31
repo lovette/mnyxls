@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Expenses":
+      sheet_type: "txns"
+      foreach: "yyyy"
+      select:
+        txntype: "Expense"

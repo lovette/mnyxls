@@ -1,0 +1,18 @@
+workbook:
+  worksheets:
+    "Credit cards":
+      sheet_type: "txns"
+      select:
+        account:
+          - "Visa"
+          - "Mastercard"
+
+    "Assets":
+      sheet_type: "txns"
+      select:
+        account_classification: "Assets"
+
+    "Not credit cards":
+      sheet_type: "txns"
+      select:
+        account_category: "!Credit Cards"

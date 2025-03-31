@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Category totals":
+      sheet_type: "txns:pivot"
+      options:
+        rows: "category"
+        columns: "total"

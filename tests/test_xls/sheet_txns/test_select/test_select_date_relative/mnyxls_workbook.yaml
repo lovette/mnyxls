@@ -1,0 +1,59 @@
+workbook:
+  worksheets:
+    "Last 15 days":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "15d"
+
+    "Last 2 weeks":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "2w"
+
+    "This month":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "0m"
+
+    "Last month":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "-1m"
+        date_to: "-1m"
+
+    "Previous month to date":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "1m"
+
+    "This year":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "0y"
+
+    "Last year":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "1y"
+        date_to: "1y"
+
+    "Previous year to date":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "-1y"
+
+    # Test out of bounds; will result in an empty sheet
+    "10 years ago":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_from: "-10y"
+        date_to: "-10y"

@@ -1,0 +1,133 @@
+######################################################################
+# User configuration file for mnyxls.
+
+# List of reports.
+# Not used if REPORT is given as command line arguments.
+# Paths are relative to the `data_dir` directory.
+# File names may include glob patterns.
+reports:
+  - "Account balances with details.csv"
+  - "Account balances.csv"
+  - "Account transactions.csv"
+  - "Income and Spending.csv"
+  - "Investment account transactions.csv"
+  - "Loan terms.csv"
+  - "Monthly income and expenses.csv"
+
+# Set to directory path.
+# Use ".". to reference working directory.
+# Defaults to configuration file directory, if set, otherwise report directory.
+# data_dir: ""
+
+# Set to file or directory name or path.
+# Use ".". to reference working directory.
+# Defaults to "Account transactions {min_date} to {max_date}.xlsx".
+# xls_file: ""
+
+# Set to file or directory name or path.
+# Use ".". to reference working directory.
+# Defaults to "mnyxls_template.xlsx".
+# xls_template: "mnyxls_template.xlsx"
+
+# Set to file or directory name or path.
+# Use ".". to reference working directory.
+# Defaults to report name with `.sqlite3` extension.
+# db_file: ""
+
+# Save interim reports for review.
+# save_interim_reports: True
+
+# Filter report dates imported.
+# Formatted as YYYY-MM-DD.
+# import_date_from: "2000-01-01"
+# import_date_to: "2024-12-31"
+
+# Enable to include SQL statements in debug output.
+# debug_sql: True
+
+######################################################################
+# Accounts
+
+# Account categories and classifications
+# These take precedence over classifications types defined in any reports.
+account_categories:
+  "Assets":
+    - "Bank and Cash Accounts"
+    - "Investment"
+    - "Other"
+
+  "Liabilities":
+    - "Credit Cards"
+    - "Loan"
+    - "Mortgage"
+    - "Other"
+
+# Account details
+# These take precedence over categories types defined in any reports.
+accounts:
+  "My Investment Account":
+    "opened_date": "2004-07-01"
+  "My Checking Account":
+    "category": "Bank and Cash Accounts"
+
+######################################################################
+# Categories
+
+# Default category type.
+# Default is "Expense".
+# category_type_default: "Expense"
+
+# Default category class.
+# Default is "Discretionary".
+# category_class_default: "Discretionary"
+
+# Category types and associated categories and/or subcategories.
+# Applies to all subcategories if a subcategory is not given.
+# These take precedence over category types defined in any reports.
+category_types:
+  "Income":
+    - "Interest Income"
+    - "Investment Income"
+    - "Other Income"
+    - "Wages & Salary"
+
+# Category classes and associated categories and/or subcategories.
+# Applies to all subcategories if a subcategory is not given.
+category_classes:
+  "Essential":
+    - "Education"
+    - "Groceries"
+    - "Healthcare"
+    - "Insurance"
+    - "Taxes"
+    - "Telephone"
+    - "Utilities"
+
+######################################################################
+# Excel Workbook
+#
+# The workbook can be defined in the main configuration file or a separate configuration file.
+# The workbook configuration file `mnyxls_workbook.yaml` is used if it exists in the data directory
+# or the path can be set with the `--xls-config` command line option.
+
+workbook:
+  autofit: True
+
+  worksheets:
+    "Txn Types":
+      sheet_type: "txns"
+      foreach: "txntype"
+      skipempty: False
+      consolidate: "yyyymm"
+
+    "Category by year":
+      sheet_type: "txns:pivot"
+      options:
+        rows: "category"
+        columns: "yyyy"
+
+    "Annual expense transactions":
+      sheet_type: "txns"
+      foreach: "yyyy"
+      select:
+        txntype: "Expense"

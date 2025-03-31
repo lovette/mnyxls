@@ -1,0 +1,8 @@
+workbook:
+  worksheets:
+    "Expenses":
+      sheet_type: "txns"
+      select:
+        txntype: "Expense"
+        date_from: "2020-01"
+        date_to: "2020-01"

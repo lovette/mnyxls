@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Empty sheet":
+      sheet_type: "txns"
+      skipempty: False
+      select:
+        account: "Foo"

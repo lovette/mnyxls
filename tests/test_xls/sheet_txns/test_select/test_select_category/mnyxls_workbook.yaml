@@ -1,0 +1,11 @@
+workbook:
+  worksheets:
+    "Groceries":
+      sheet_type: "txns"
+      select:
+        category: "Groceries"
+
+    "Online shopping":
+      sheet_type: "txns"
+      select:
+        category: "Shopping:Online"

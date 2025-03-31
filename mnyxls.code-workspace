@@ -1,0 +1,28 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"[python]": {
+			"editor.formatOnSave": true,
+			"editor.defaultFormatter": "charliermarsh.ruff",
+			"editor.codeActionsOnSave": {
+				"source.organizeImports": "explicit"
+			}
+		},
+		"files.exclude": {
+			".ruff_cache": true,
+			"*.sublime-*": true,
+			"**/__pycache__": true,
+			"**/*.egg-info": true,
+			"build": true,
+		},
+		"python.analysis.exclude": [
+			"build",
+			"**/*.egg-info"
+		],
+		"python.analysis.diagnosticMode": "workspace",
+	}
+}

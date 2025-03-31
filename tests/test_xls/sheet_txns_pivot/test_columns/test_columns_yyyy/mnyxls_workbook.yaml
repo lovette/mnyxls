@@ -1,0 +1,13 @@
+workbook:
+  worksheets:
+    "Expense categories by year":
+      sheet_type: "txns:pivot"
+      options:
+        rows: "category"
+        columns:
+          - "yyyy"
+      select:
+        "txntype": "Expense"
+        "yyyy":
+          - "2020"
+          - 2021

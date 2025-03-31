@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debugpy: mnyxls",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "mnyxls",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": false,
+            "args": [
+                "-vvv",
+                // "--no-db",
+                // "--no-xls",
+                "--no-reports",
+                "-c", "/Users/Lance/Documents/Money/Workbooks/2024/mnyxls.yaml",
+                "--db-file", "Account transactions 1990-09-07 to 2024-12-31.sqlite3",
+                // "--data-dir", "/Users/Lance/Documents/Money/Workbooks/2024",
+                // "Account transactions 2018-2024.csv"
+            ]
+        },
+        {
+            "name": "debugpy: gentestreports.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "gentestreports.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/tests",
+            "justMyCode": false,
+            "args": [
+                "--output", "sample_reports/txns_2018_2022.csv",
+            ]
+        }
+    ]
+}

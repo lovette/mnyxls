@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Payee by year":
+      sheet_type: "txns:pivot"
+      options:
+        rows: "payee"
+        columns: "yyyy"

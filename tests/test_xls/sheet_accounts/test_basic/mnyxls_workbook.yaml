@@ -1,0 +1,4 @@
+workbook:
+  worksheets:
+    "Accounts":
+      sheet_type: "accounts"

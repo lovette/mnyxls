@@ -1,0 +1,1 @@
+"""mnyxls command line tool."""

@@ -1,0 +1,5 @@
+workbook:
+  worksheets:
+    "Txn Classes":
+      sheet_type: "txns"
+      foreach: "txnclass"

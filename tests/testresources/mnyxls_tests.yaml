@@ -1,0 +1,36 @@
+reports:
+  - "txns_2018_2022.csv"
+
+category_types:
+  "Income":
+    - "Freelance Income"
+    - "Interest Income"
+    - "Wages & Salary"
+
+category_classes:
+  "Essential":
+    - "Education"
+    - "Groceries"
+    - "Healthcare"
+    - "Utilities"
+
+account_categories:
+  "Assets":
+    - "Bank and Cash Accounts"
+
+  "Liabilities":
+    - "Credit Cards"
+
+accounts:
+  "Checking":
+    "opened_date": "2018-01-01"
+    "category": "Bank and Cash Accounts"
+  "Savings":
+    "opened_date": "2018-01-01"
+    "category": "Bank and Cash Accounts"
+  "Visa":
+    "opened_date": "2018-01-01"
+    "category": "Credit Cards"
+  "Mastercard":
+    "opened_date": "2018-01-01"
+    "category": "Credit Cards"

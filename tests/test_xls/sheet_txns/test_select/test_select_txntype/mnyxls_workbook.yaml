@@ -1,0 +1,6 @@
+workbook:
+  worksheets:
+    "Expenses":
+      sheet_type: "txns"
+      select:
+        txntype: "Expense"

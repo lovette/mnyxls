@@ -1,0 +1,6 @@
+workbook:
+  worksheets:
+    "Walmart":
+      sheet_type: "txns"
+      select:
+        payee: "Walmart"

@@ -1,0 +1,9 @@
+workbook:
+  worksheets:
+    "Txn type by year":
+      sheet_type: "txns:pivot"
+      options:
+        rows:
+          - "txntype"
+          - "txnclass"
+        columns: "yyyy"

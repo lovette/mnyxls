@@ -1,0 +1,4 @@
+workbook:
+  worksheets:
+    "Category by year":
+      sheet_type: "txns:pivot"

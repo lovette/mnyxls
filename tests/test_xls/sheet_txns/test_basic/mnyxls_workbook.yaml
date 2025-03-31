@@ -1,0 +1,8 @@
+workbook:
+  worksheets:
+    "All transactions":
+      sheet_type: "txns"
+
+    "Consolidated yyyymm":
+      sheet_type: "txns"
+      consolidate: "yyyymm"

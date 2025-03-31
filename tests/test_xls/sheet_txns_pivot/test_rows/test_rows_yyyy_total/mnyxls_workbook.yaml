@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Annual totals":
+      sheet_type: "txns:pivot"
+      options:
+        rows: "yyyy"
+        columns: "total"

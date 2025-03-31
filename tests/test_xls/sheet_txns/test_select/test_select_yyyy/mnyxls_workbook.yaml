@@ -1,0 +1,8 @@
+workbook:
+  worksheets:
+    "Checking expenses 2018":
+      sheet_type: "txns"
+      select:
+        txntype: "Expense"
+        account: "Checking"
+        yyyy: "2018"

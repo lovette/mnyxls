@@ -1,0 +1,10 @@
+workbook:
+  worksheets:
+    "Account by year":
+      sheet_type: "txns:pivot"
+      options:
+        rows:
+          - "account"
+          - "account_category"
+          - "account_classification"
+        columns: "yyyy"

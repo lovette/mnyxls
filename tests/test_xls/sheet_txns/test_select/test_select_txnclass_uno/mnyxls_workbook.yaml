@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Essential":
+      sheet_type: "txns"
+      select:
+        txnclass:
+          - "Essential"

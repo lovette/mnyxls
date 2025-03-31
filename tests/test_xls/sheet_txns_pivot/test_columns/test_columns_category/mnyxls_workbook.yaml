@@ -1,0 +1,7 @@
+workbook:
+  worksheets:
+    "Txn class by category":
+      sheet_type: "txns:pivot"
+      options:
+        rows: "txnclass"
+        columns: "category"

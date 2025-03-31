@@ -1,0 +1,6 @@
+# These take precedence over category types defined in any reports.
+category_types:
+  "Income":
+    - "Freelance Income"
+    - "Interest Income"
+    - "Wages & Salary"
