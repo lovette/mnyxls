@@ -190,8 +190,8 @@ Some options do not apply to workbook selects.
 | `payee` | Select transactions for a payee name. [Worksheet only] |
 | `txnclass` | Select transactions by class. [Worksheet only] |
 | `txntype` | Select transactions by type. [Worksheet only] |
-| `date_from` | Select transactions after this date (inclusive); accepts formats `YYYY-MM-DD`, `YYYY-MM`, `YYYY`. |
-| `date_to` | Select transactions before this date (inclusive); accepts formats `YYYY-MM-DD`, `YYYY-MM`, `YYYY`. |
+| `date_from` | Select transactions after this date (inclusive); accepts formats `YYYY-MM-DD`, `YYYY-MM`, `YYYY`. `MM` defaults to January. `DD` defaults to the first of the month. |
+| `date_to` | Select transactions before this date (inclusive); accepts formats `YYYY-MM-DD`, `YYYY-MM`, `YYYY`. `MM` defaults to December. `DD` defaults to the last day of the month. |
 | `yyyy` | Select transactions in given year(s). |
 
 ### For each
