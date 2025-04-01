@@ -62,16 +62,19 @@ def _opt_config_file_callback(ctx: click.Context, param: click.Option, value: Pa
     Returns:
         str: Option value.
     """
-    if value and value.is_file():
+    assert value is not None
+    assert ctx.default_map is None
+
+    ctx.default_map = {"_config_file": value}  # Capture for error reporting
+
+    if value.is_file():
         try:
             config = read_config_file(value)
         except MnyXlsConfigError as err:
             raise MnyXlsConfigError(f"Failed to read config file {value}: {err}") from err
         else:
             if config:
-                config["_config_file"] = value  # Click does not capture this itself
-
-            ctx.default_map = config
+                ctx.default_map.update(config)
 
     return value
 
@@ -285,13 +288,15 @@ def cli(  # noqa: C901, PLR0912, PLR0913, PLR0915
     # Options set in configuration file, set by `config_set_default`
     config = typing.cast("MainConfigFileT", dict(ctx.default_map or {}))
 
-    if "_config_file" not in config:
-        # Error handling expects this key to be present
-        config["_config_file"] = None
-
     config_file: Path | None = config.get("_config_file")
 
-    logger.debug("Main config path: %s", f"'{config_file}'" if config_file else "None")
+    # Error handling expects this key to be present
+    assert config_file is not None
+
+    if config_file.is_file():
+        logger.debug("Main config file: %s", f"'{config_file.resolve()}'")
+    else:
+        logger.debug("Main config file: %s: No such file.", f"'{config_file.resolve()}'")
 
     if not data_dir and config_file:
         # Data files are relative to config directory.

@@ -163,6 +163,7 @@ def read_config_file(config_path: Path) -> dict[str, Any]:
     def _read_json_config(fp: TextIOWrapper) -> dict[str, Any]:
         try:
             d = json.load(fp)
+            logger.debug(f"Reading JSON file '{config_path}'")
         except json.JSONDecodeError as err:
             raise MnyXlsConfigError(f"{err}") from err
 
@@ -173,6 +174,7 @@ def read_config_file(config_path: Path) -> dict[str, Any]:
 
     def _read_yaml_config(fp: TextIOWrapper) -> dict[str, Any]:
         try:
+            logger.debug(f"Reading YAML file '{config_path}'")
             d = yaml.load(fp.read(), Loader=UniqueKeyLoader)  # noqa: S506
         except (yaml.YAMLError, ValueError) as err:
             raise MnyXlsConfigError(f"{err}") from err
@@ -184,7 +186,6 @@ def read_config_file(config_path: Path) -> dict[str, Any]:
 
     try:
         if config_path.is_file() and config_path.stat().st_size:
-            logger.debug(f"Reading {config_path}")
             with config_path.open() as fp:
                 return _read_json_config(fp) if config_path.suffix == ".json" else _read_yaml_config(fp)
 
