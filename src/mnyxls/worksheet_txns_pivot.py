@@ -99,6 +99,10 @@ PIVOT_COLUMNS_OPT_COL_MAP = MappingProxyType(
     | PIVOT_DATEOPT_COL_MAP
 )
 
+PIVOT_INDEX_OPT_COL_MAP_REVERSED = MappingProxyType({v: k for k, v in PIVOT_INDEX_OPT_COL_MAP.items()})
+PIVOT_COLUMNS_OPT_COL_MAP_REVERSED = MappingProxyType({v: k for k, v in PIVOT_COLUMNS_OPT_COL_MAP.items()})
+PIVOT_COL_MAP_OPT = PIVOT_INDEX_OPT_COL_MAP_REVERSED | PIVOT_COLUMNS_OPT_COL_MAP_REVERSED
+
 # > Mapping[directive] = (strftime, excel_format)
 PIVOT_DATEOPT_FORMATS = MappingProxyType(
     {
@@ -251,9 +255,12 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
                         break
 
         # Ensure pivot columns and pivot rows do not overlap
-        if set(self._pivot_index_names) & set(self._pivot_columns_names):
+        overlap_columns = set(self._pivot_index_names) & set(self._pivot_columns_names)
+        if overlap_columns:
+            directives = sorted([PIVOT_COL_MAP_OPT.get(col, col) for col in overlap_columns])
+
             raise MnyXlsConfigError(
-                "Pivot columns and pivot rows cannot overlap.",
+                f"Pivot columns and pivot rows cannot overlap; both contain {directives}",
                 self.workbook.config,
                 (*self.config_keys, "options"),
             )
