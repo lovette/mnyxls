@@ -287,6 +287,7 @@ Use column value `total` to show only the total for each row.
 
 | Option | Description |
 | --- | --- |
+| `columns` | Include or exclude columns from the worksheet. |
 | `consolidate` | Consolidate transactions to reduce number of sheet transactions. Valid options are: `yyyymm`. |
 
 ### Workbook options

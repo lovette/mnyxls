@@ -17,10 +17,12 @@ from openpyxl.utils.cell import column_index_from_string, coordinate_from_string
 from openpyxl.worksheet.worksheet import Worksheet
 from pandas.io.formats.excel import ExcelFormatter  # type: ignore[reportMissingImport]
 
-from .configtypes import WorksheetConfigSelectT, WorksheetConfigT
+from .configtypes import ConfigFileValueT, WorksheetConfigSelectT, WorksheetConfigT
 from .jinja import render_template_str
 from .shared import (
     MnyXlsConfigError,
+    filter_list_cond,
+    get_values_and_cond,
     truncate_w_ellipsis,
     validate_config_typed_dict,
 )
@@ -66,6 +68,9 @@ FRIENDLY_COLUMN_NAMES = MappingProxyType(
         "XferAccount": "Xfer Account",
     }
 )
+
+# User-friendly column names are used in the configuration file.
+FRIENDLY_COLUMNS_BY_COL = MappingProxyType({v: k for k, v in FRIENDLY_COLUMN_NAMES.items()})
 
 ExcelWriterWorksheetT = Worksheet  # to_excel does not define a "worksheet" type
 DataFrameKeyT = str | tuple[str, ...]  # Hashable keys used to index DataFrame columns (df[col])
@@ -489,17 +494,17 @@ class MoneyWorksheet(ABC):
     ######################################################################
     # Instance methods
 
-    def get_config_value(self, key: str, default: str | int | bool | None) -> str | int | bool | Sequence | Mapping | None:
+    def get_config_value(self, key: str, default: ConfigFileValueT | None) -> ConfigFileValueT | None:
         """Get a worksheet configuration value.
 
         Worksheet configuration values override workbook and top-level configuration values.
 
         Args:
             key (str): Configuration key.
-            default (str): Default value if key is not set.
+            default (ConfigFileValueT): Default value if key is not set.
 
         Returns:
-            str | int | bool | Sequence | Mapping | None
+            ConfigFileValueT | None
         """
         assert self.workbook is not None
         assert self.worksheet_config is not None
@@ -558,8 +563,7 @@ class MoneyWorksheet(ABC):
             ws: Worksheet = writer.sheets[safe_sheet_name]
             self.preserve_column_headers = tuple([str(cells[0].value) for cells in ws.iter_cols(max_row=1)])
 
-        self.df_worksheet = self.get_sheet_data(conn)
-        df_worksheet = self.df_worksheet
+        df_worksheet = self.get_sheet_data(conn)
 
         skipempty = self.worksheet_config.get("skipempty", True)
 
@@ -573,9 +577,11 @@ class MoneyWorksheet(ABC):
 
         logger.debug(f"... worksheet '{safe_sheet_name}' with {df_worksheet.shape[0]} rows")
 
-        df_worksheet = self.prepare_to_excel()
+        self.df_worksheet = df_worksheet
 
-        return self.to_excel(writer, safe_sheet_name, df_worksheet)
+        self.prepare_to_excel()
+
+        return self.to_excel(writer, safe_sheet_name, self.df_worksheet)
 
     @abstractmethod
     def get_sheet_data(self, conn: sqlite3.Connection) -> pd.DataFrame:
@@ -601,7 +607,7 @@ class MoneyWorksheet(ABC):
             if isinstance(cell.value, str) and cell.value in FRIENDLY_COLUMN_NAMES:
                 cell.value = FRIENDLY_COLUMN_NAMES[cell.value]
 
-    def prepare_to_excel(self) -> pd.DataFrame:
+    def prepare_to_excel(self) -> None:
         """Prepare to write worksheet to workbook.
 
         Invoked prior to `to_excel`.
@@ -612,19 +618,18 @@ class MoneyWorksheet(ABC):
         """
         assert self.df_worksheet is not None
 
-        df_worksheet = self.df_worksheet
-
         # RangeIndex values are unnamed integers and don't need to be included.
         # Pivot table indexes must be included.
-        self.index_to_excel = not isinstance(df_worksheet.index, pd.RangeIndex)
+        self.index_to_excel = not isinstance(self.df_worksheet.index, pd.RangeIndex)
 
         if self.currency_cols:
-            df_worksheet = df_worksheet.copy()  # don't modify original DataFrame
+            df_worksheet = self.df_worksheet.copy()  # don't modify original DataFrame
+
             for col in self.currency_cols:
                 # Write currency as a float to avoid Excel marking cells with "Number Stored as Text".
                 df_worksheet[col] = df_worksheet[col].apply(lambda x: x.nofmt() if pd.notna(x) else np.nan).astype(float)
 
-        return df_worksheet
+            self.df_worksheet = df_worksheet
 
     def to_excel(self, writer: pd.ExcelWriter, sheet_name: str, df_worksheet: pd.DataFrame) -> ExcelWriterWorksheetT | None:
         """Write data to workbook sheet.
@@ -1102,3 +1107,26 @@ class MoneyWorksheet(ABC):
         assert len(row_values) == len(row_cells)
 
         return row_values
+
+    def filter_df_columns(self, sheet_columns: pd.DataFrame | Sequence[str]) -> Sequence[str]:
+        """Include or exclude columns as defined in the configuration file.
+
+        Args:
+            sheet_columns (Sequence[str]): List of sheet column names.
+
+        Returns:
+            Sequence[str]: List of sheet column names.
+        """
+        if isinstance(sheet_columns, pd.DataFrame):
+            sheet_columns = sheet_columns.columns.tolist()
+
+        config_columns = self.worksheet_config.get("columns", None)
+        if config_columns is None:
+            return sheet_columns
+
+        filter_columns, filter_cond = get_values_and_cond(config_columns)
+
+        # User-friendly column names are used in the configuration file.
+        filter_columns = [FRIENDLY_COLUMNS_BY_COL.get(col, col) for col in filter_columns]
+
+        return filter_list_cond(sheet_columns, filter_columns, filter_cond)

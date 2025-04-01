@@ -543,8 +543,16 @@ class MoneyWorksheetTxnsBase(MoneyWorksheet):
         assert txndate_min is not None
         assert txndate_max is not None
 
-        date_from = _spec_to_date(spec_date_from[0], txndate_max, first_day=True) if spec_date_from else None
-        date_to = _spec_to_date(spec_date_to[0], txndate_max, first_day=False) if spec_date_to else None
+        date_from = None
+        date_to = None
+
+        if spec_date_from:
+            assert isinstance(spec_date_from[0], str)
+            date_from = _spec_to_date(spec_date_from[0], txndate_max, first_day=True)
+
+        if spec_date_to:
+            assert isinstance(spec_date_to[0], str)
+            date_to = _spec_to_date(spec_date_to[0], txndate_max, first_day=False)
 
         if date_from and date_to and date_to < date_from:
             date_from, date_to = date_to, date_from

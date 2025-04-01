@@ -7,7 +7,7 @@ from mysqlstmt import Select
 
 from .configtypes import WorksheetConfigSelectCategoriesT
 from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
-from .shared import get_select_values, pd_read_sql, validate_config_typed_dict
+from .shared import get_select_values_and_cond, pd_read_sql, validate_config_typed_dict
 from .worksheet import WORKSHEET_COLWIDTH_MAX, MoneyWorksheet
 
 if TYPE_CHECKING:
@@ -110,9 +110,9 @@ class MoneyWorksheetCategoriesSinglePayee(MoneyWorksheet):
         }
 
         for select_key, table_column in where_value_simple.items():
-            values = get_select_values(select_key, self.worksheet_config)
+            values, cond = get_select_values_and_cond(select_key, self.worksheet_config)
             if values:
-                q_select.where_value(table_column, values)
+                q_select.where_value(table_column, values, cond)
 
 
 ######################################################################

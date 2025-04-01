@@ -9,12 +9,19 @@ from typing import TYPE_CHECKING
 import pandas as pd
 from openpyxl import load_workbook
 
-from .configtypes import MainConfigFileT, WorkbookConfigFileT, WorkbookConfigSelectT, WorkbookConfigT, WorksheetConfigSelectT
+from .configtypes import (
+    ConfigFileValueT,
+    MainConfigFileT,
+    WorkbookConfigFileT,
+    WorkbookConfigSelectT,
+    WorkbookConfigT,
+    WorksheetConfigSelectT,
+)
 from .shared import (
     MnyXlsConfigError,
     config_warning,
     get_date_relative_to,
-    get_select_values_and_cond,
+    get_select_values,
     parse_yyyymmdd_flex,
     read_config_file,
     resolve_rel_path,
@@ -32,7 +39,7 @@ from .worksheet_txns_pivot import MoneyWorksheetTxnsPivot  # noqa: F401
 
 if TYPE_CHECKING:
     import sqlite3
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
     from pathlib import Path
 
     import click
@@ -112,7 +119,7 @@ class MoneyWorkbook:
     ######################################################################
     # Instance methods
 
-    def get_config_value(self, key: str, default: str | int | bool | None) -> str | int | bool | Sequence | Mapping | None:
+    def get_config_value(self, key: str, default: ConfigFileValueT | None) -> ConfigFileValueT | None:
         """Get a workbook configuration value.
 
         Workbook configuration values override top-level configuration values.
@@ -122,7 +129,7 @@ class MoneyWorkbook:
             default (str): Default value if key is not set.
 
         Returns:
-            str | int | bool | Sequence | Mapping | None
+            ConfigFileValueT | None
         """
         return self.workbook_config.get(key, self.config.get(key, default))
 
@@ -216,7 +223,7 @@ class MoneyWorkbook:
 
         # Sanity check select criteria
         for select_key in select_config:
-            values, _ = get_select_values_and_cond(select_key, select_config)
+            values = get_select_values(select_key, select_config)
             if not values:
                 raise MnyXlsConfigError("At least one value is required.", workbook.config, (*config_keys, select_key))
 

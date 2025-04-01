@@ -26,7 +26,14 @@ if TYPE_CHECKING:
     from mysqlstmt import Stmt
     from pandas.api.typing import NAType
 
-    from .configtypes import CommonConfigFileT, WorkbookConfigSelectT, WorkbookConfigT, WorksheetConfigSelectT, WorksheetConfigT
+    from .configtypes import (
+        CommonConfigFileT,
+        ConfigFileValueT,
+        WorkbookConfigSelectT,
+        WorkbookConfigT,
+        WorksheetConfigSelectT,
+        WorksheetConfigT,
+    )
 
 ELLIPSIS_LEN = len("...")
 
@@ -594,45 +601,82 @@ def is_sequence(obj: Any) -> bool:  # noqa: ANN401
     return isinstance(obj, Sequence) and not isinstance(obj, str)
 
 
+def get_values_and_cond(value_or_values: str | Sequence[str]) -> tuple[Sequence[str], Literal["=", "<>"]]:
+    """Return a value list (even for a single item) and condition.
+
+    Args:
+        value_or_values (str|Sequence[str]): Sequence of values for a config file directive.
+
+    Returns:
+        tuple[Sequence[str], str]: (values, condition)
+    """
+    if is_sequence(value_or_values):
+        assert isinstance(value_or_values, (list, tuple))
+        values = value_or_values
+    else:
+        values = [value_or_values]
+
+    values = [str(v) for v in values]
+
+    if values:
+        # We only support scalar values as list items
+        assert isinstance(values[0], str | int | bool)  # ConfigFileScalarT
+
+    if values and values[0].startswith("!"):
+        # First value can be "!" or "!value"
+        values = values[1:] if values[0] == "!" else [values[0].removeprefix("!"), *values[1:]]
+        return values, "<>"
+
+    return values, "="
+
+
 def get_select_values(
     select_key: str,
     config: WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT,
-) -> Sequence[Any]:
+) -> Sequence[str]:
     """Return list of values (even if directive is a scalar value) for a 'select' configuration directive key.
 
     Args:
         select_key (str): Select directive.
-        config (WorkbookConfigT | WorksheetConfigT  WorkbookConfigSelectT | WorksheetConfigSelectT): Workbook or worksheet configuration.
+        config (WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT): Workbook or worksheet configuration.
 
     Returns:
-        Sequence[Any]
+        Sequence[str]
     """
     config_select = config.get("select", config)
-    config_value = config_select.get(select_key, []) if config_select else []
-    return config_value if is_sequence(config_value) else [config_value]
+    config_value: ConfigFileValueT | None = config_select.get(select_key) if config_select else None
+
+    if config_value is None:
+        values = []
+    elif is_sequence(config_value):
+        assert isinstance(config_value, (list, tuple))
+        values = config_value
+    else:
+        values = [config_value]
+
+    if values:
+        # We only support scalar values as list items
+        assert isinstance(values[0], str | int | bool)  # ConfigFileScalarT
+
+    # Convert all values to strings (simplifies type checking!)
+    return [str(v) for v in values]
 
 
 def get_select_values_and_cond(
     select_key: str,
-    config_select: WorkbookConfigSelectT | WorksheetConfigSelectT,
-) -> tuple[Sequence[Any], Literal["=", "<>"]]:
+    config_select: WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT,
+) -> tuple[Sequence[str], Literal["=", "<>"]]:
     """Return a value list (even for a single item) and condition.
 
     Args:
         select_key (str): Select directive.
-        config_select (WorkbookConfigSelectT | WorksheetConfigSelectT): Worksheet configuration.
+        config_select (WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT): Workbook or worksheet configuration.
 
     Returns:
         tuple[Sequence[str], str]: (values, condition)
     """
     values = get_select_values(select_key, config_select)
-
-    if values and isinstance(values[0], str) and values[0].startswith("!"):
-        # First value can be "!" or series of "!value"
-        values = values[1:] if values[0] == "!" else [value.removeprefix("!") if value.startswith("!") else value for value in values]
-        return values, "<>"
-
-    return values, "="
+    return get_values_and_cond(values)
 
 
 def config_select_allow(
@@ -742,3 +786,19 @@ def get_date_relative_to(date_spec: str, relative_to: date, first_day: bool = Fa
         d = d.replace(day=(d.replace(month=d.month % 12 + 1, day=1) - timedelta(days=1)).day)
 
     return d
+
+
+def filter_list_cond(lst: Sequence[str], cond_values: Sequence[str], cond: Literal["=", "<>"]) -> list[str]:
+    """Filter a list of strings based on a condition and a list of values.
+
+    Args:
+        lst (Sequence[str]): List of strings to filter.
+        cond_values (Sequence[str]): List of values to compare against.
+        cond (str): Condition to apply ("=" or "<>").
+
+    Returns:
+        list[str]: Filtered list of strings.
+    """
+    if cond == "=":
+        return [item for item in lst if item in cond_values]
+    return [item for item in lst if item not in cond_values]

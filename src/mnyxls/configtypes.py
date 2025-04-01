@@ -5,11 +5,13 @@
 # It is a known issue, despite not being widely documented, and will never be "fixed".
 # https://github.com/python/cpython/issues/97727
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import date
 from pathlib import Path
 from typing import NotRequired, TypedDict
 
+ConfigFileScalarT = str | int | bool
+ConfigFileValueT = ConfigFileScalarT | Sequence[ConfigFileScalarT] | Mapping[str, ConfigFileScalarT]
 ConfigReportsT = list[str | Path]
 ConfigAccountCategoriesT = dict[str, list[str]]  # `account_categories`
 YYYYTypeT = str | int | Sequence[str | int]  # !YEAR, YEAR | list[YEAR,...]
@@ -141,6 +143,7 @@ class WorksheetConfigT(TypedDict):
 
     # Dependent on `sheet_type`
     autofit: NotRequired[bool]
+    columns: NotRequired[str | Sequence[str]]
     consolidate: NotRequired[str]
     foreach: NotRequired[str]
     options: NotRequired[WorksheetConfigOptionsT]

@@ -354,7 +354,7 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
 
         return df_worksheet if not opt_columns_pivot_total else df_worksheet.iloc[:, -1:]
 
-    def prepare_to_excel(self) -> pd.DataFrame:
+    def prepare_to_excel(self) -> None:
         """Prepare to write worksheet to workbook.
 
         Invoked prior to `to_excel`.
@@ -384,7 +384,7 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
             for col in self.df_worksheet.columns:
                 self.currency_cols.append(col)
 
-        return super().prepare_to_excel()
+        super().prepare_to_excel()
 
     def format_sheet(self) -> None:  # noqa: C901, PLR0912
         """Format worksheet after sheet is created."""

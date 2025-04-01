@@ -9,7 +9,7 @@ from .dbschema import TABLE_TXNS, table_schema_columns
 from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd
 from .report import TxnType
-from .shared import config_warning, pd_read_sql, validate_config_typed_dict
+from .shared import config_warning, get_values_and_cond, pd_read_sql, validate_config_typed_dict
 from .worksheet import WORKSHEET_COLWIDTH_MAX, MoneyWorksheet
 from .worksheet_txns_base import MoneyWorksheetTxnsBase
 
@@ -99,7 +99,7 @@ class MoneyWorksheetTxns(MoneyWorksheetTxnsBase):
     ######################################################################
     # Instance methods
 
-    def get_sheet_data(self, conn: sqlite3.Connection) -> pd.DataFrame:  # noqa: C901 PLR0912
+    def get_sheet_data(self, conn: sqlite3.Connection) -> pd.DataFrame:  # noqa: C901, PLR0912, PLR0915
         """Query database and return data to write to worksheet.
 
         Args:
@@ -161,6 +161,11 @@ class MoneyWorksheetTxns(MoneyWorksheetTxnsBase):
             date_cols=[date_col],
             currency_cols=self.currency_cols,
         )
+
+        # Include or exclude columns as defined in the configuration file.
+        config_columns = self.filter_df_columns(df_worksheet)
+        if config_columns:
+            df_worksheet = df_worksheet[config_columns]
 
         # Drop columns that are redundant with the sheet name only if they only have one value.
         # (This prevents having a sheet named "Checking expenses" with columns "Account: Checking" and "Txn Type: Expenses".)
