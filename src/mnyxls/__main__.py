@@ -13,15 +13,25 @@ import click
 from click.core import ParameterSource
 from click_option_group import optgroup
 
-from .configtypes import ConfigReportsT, MainConfigFileT
+from .configtypes import ConfigEraT, MainConfigFileT
 from .dbsqlite import db_create
 from .report import ReportType
 from .reports import gather_reports, parse_reports
-from .shared import MnyXlsConfigError, MnyXlsRuntimeError, is_sequence, read_config_file, resolve_rel_path, validate_config_typed_dict
+from .shared import (
+    MnyXlsConfigError,
+    MnyXlsRuntimeError,
+    is_sequence,
+    parse_yyyymmdd_flex,
+    read_config_file,
+    resolve_rel_path,
+    validate_config_typed_dict,
+)
 from .workbook import DEFAULT_XLS_CONFIG_NAME, DEFAULT_XLS_TEMPLATE_NAME, gather_workbook
 
 if TYPE_CHECKING:
     from datetime import date
+
+    from .configtypes import ConfigErasT, ConfigReportsT
 
 
 VERBOSE_LOGGING_LEVELS = (
@@ -77,6 +87,37 @@ def _opt_config_file_callback(ctx: click.Context, param: click.Option, value: Pa
                 ctx.default_map.update(config)
 
     return value
+
+
+def _validate_main_config(config: MainConfigFileT) -> None:
+    """Validate the configuration file directives.
+
+    Args:
+        config (MainConfigFileT): Main configuration.
+    """
+
+    def _validate_eras(config_eras: ConfigErasT) -> None:
+        for idx, era_name in enumerate(config_eras):
+            era_config = config_eras[era_name]
+            config_keys = ("eras", era_name)
+
+            validate_config_typed_dict(era_config, ConfigEraT, config, [])
+
+            for k in ("date_from", "date_to"):
+                v = era_config.get(k)
+                if not v:
+                    continue
+                if v == "..." and k == "date_to" and idx > 0:
+                    continue
+                if not parse_yyyymmdd_flex(v):
+                    raise MnyXlsConfigError(f"'{v}': Invalid date spec.", config, (*config_keys, k))
+
+    # This will catch common configuration issues early on, e.g. unrecognized or missing required keys.
+    validate_config_typed_dict(config, MainConfigFileT, config, [])
+
+    config_eras = config.get("eras")
+    if config_eras:
+        _validate_eras(config_eras)
 
 
 ######################################################################
@@ -311,7 +352,7 @@ def cli(  # noqa: C901, PLR0912, PLR0913, PLR0915
                 config[param] = param_value
 
     # Validate config file directives and value types.
-    validate_config_typed_dict(config, MainConfigFileT, config, [] if config_file else ["MainConfigFile"])
+    _validate_main_config(config)
 
     debug_sql = config.get("debug_sql", False)
 

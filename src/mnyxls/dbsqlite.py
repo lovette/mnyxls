@@ -4,7 +4,7 @@ import logging
 import re
 import sqlite3
 from collections import defaultdict
-from datetime import date
+from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -1273,27 +1273,28 @@ def _db_insert_eras_config(conn: sqlite3.Connection, config: MainConfigFileT) ->
             _conn_execute_sql(conn, q_insert)
 
     def _validate_and_sort_eras(config_eras: ConfigErasT) -> ConfigErasT:
-        # Validate and sort eras
+        # Configure eras.
+        # Eras were roughly validated in `_validate_main_config`.
 
         valid_eras: ConfigErasT = {}
+        prev_date_to: date | None = None
 
-        if not isinstance(config_eras, dict):
-            raise MnyXlsConfigError("Directive must be a set of key/value pairs.", config, "eras")
-
-        # Validate eras
         for era_name, era_config in config_eras.items():
             config_keys = ("eras", era_name)
-
             date_from_spec = era_config.get("date_from")
             date_to_spec = era_config.get("date_to")
+            date_from = None
+            date_to = None
 
-            for k in ("date_from", "date_to"):
-                v = era_config.get(k)
-                if v and not parse_yyyymmdd_flex(v):
-                    raise MnyXlsConfigError(f"'{v}': Invalid date spec.", config, (*config_keys, k))
+            if date_from_spec is not None:
+                if isinstance(date_from_spec, str):
+                    date_from = parse_yyyymmdd_flex(date_from_spec, first_day=True)
+            elif prev_date_to is not None:
+                # Start after the previous era's end date
+                date_from = prev_date_to + timedelta(days=1)
 
-            date_from = parse_yyyymmdd_flex(date_from_spec, first_day=True) if isinstance(date_from_spec, str) else None
-            date_to = parse_yyyymmdd_flex(date_to_spec, first_day=False) if isinstance(date_to_spec, str) else None
+            if isinstance(date_to_spec, str) and date_to_spec != "...":
+                date_to = parse_yyyymmdd_flex(date_to_spec, first_day=False)
 
             if not (date_from or date_to):
                 raise MnyXlsConfigError("'date_from' or 'date_to' is required.", config, config_keys)
@@ -1307,6 +1308,7 @@ def _db_insert_eras_config(conn: sqlite3.Connection, config: MainConfigFileT) ->
                 insert_era_config["date_from"] = date_from
             if date_to is not None:
                 insert_era_config["date_to"] = date_to
+                prev_date_to = date_to
 
             valid_eras[era_name] = insert_era_config
 

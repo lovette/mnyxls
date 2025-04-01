@@ -35,12 +35,11 @@ accounts:
     "opened_date": "2018-01-01"
     "category": "Credit Cards"
 
-# These are intentionally out of order to test the sorting of eras.
+# Names are intentionally not sorted alphabetically to test the sorting of eras.
 eras:
-  "Era A":
-    "date_from": "2021"
-  "Era B":
-    "date_from": "2020"
-    "date_to": "2020"
   "Era C":
     "date_to": "2019"
+  "Era B":
+    "date_to": "2020"
+  "Era A":
+    "date_to": "..."

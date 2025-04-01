@@ -106,16 +106,20 @@ category_classes:
 ######################################################################
 # Eras
 #
-# Each era is a defined date range that can be referenced in worksheets.
+# Each era is a defined date range that can be used as `select` and `foreach` criteria.
+# Each era must have a `date_from` or `date_to` or both.
+# The first era must specify `date_to`.
+# If `date_from` is not specified, it is set to the day after the `date_to` of the previous era.
+# The last era can specify a `date_to` of "..." (i.e., an open-ended era) to include all future dates.
+# A warning will be issued if there are overlapping eras or gaps in the date ranges.
 
 eras:
   "Era A":
     "date_to": "2019"
   "Era B":
-    "date_from": "2020"
     "date_to": "2020"
   "Era C":
-    "date_from": "2021"
+    "date_to": "..."
 
 ######################################################################
 # Excel Workbook
