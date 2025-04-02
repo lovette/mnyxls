@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import re
 import typing
 from datetime import date
+from decimal import DecimalException
 
 from mysqlstmt import Select, Update
 
+from .currencydecimal import currency_from_value
 from .dbschema import TABLE_ACCOUNTS
 from .shared import (
+    MnyXlsConfigError,
     config_select_allow,
     get_date_relative_to,
     get_select_values,
@@ -21,6 +25,11 @@ if typing.TYPE_CHECKING:
     from collections.abc import Container
 
     from .configtypes import ConfigSelectUnionT
+    from .currencydecimal import CurrencyDecimal
+
+# Regular expression to match `select` amount specifications such as "<MM.NN".
+RE_AMOUNT = re.compile(r"([<>=!]+)\s*(-?[\d,.]+)")
+
 
 ######################################################################
 # Helper functions
@@ -114,7 +123,7 @@ def get_txndates(conn: sqlite3.Connection, account_name: str | None = None) -> t
     return (min_date, max_date)
 
 
-def apply_txns_select_where(  # noqa: C901, PLR0912
+def apply_txns_select_where(  # noqa: C901, PLR0912, PLR0915
     conn: sqlite3.Connection,
     q_select: Select | Update,
     select_config: ConfigSelectUnionT,
@@ -131,6 +140,18 @@ def apply_txns_select_where(  # noqa: C901, PLR0912
         allow_directives (Container[str] | None, optional): Allowable directives. Defaults to None.
             If None, all directives are allowed.
     """
+
+    def _amount_currency(value: str) -> CurrencyDecimal:
+        try:
+            currency = currency_from_value(value)
+        except DecimalException:
+            currency = None
+
+        if currency is None:
+            raise MnyXlsConfigError(f"'select': 'amount': '{value}': Amount is not a decimal number.")
+
+        return currency
+
     # Criteria are in the `select` field for WorkbookConfigT and WorksheetConfigT
     select_config = select_config.get("select", select_config)
 
@@ -199,3 +220,31 @@ def apply_txns_select_where(  # noqa: C901, PLR0912
             q_select.where_value("Date", date_from, ">=")
         elif date_to:
             q_select.where_value("Date", date_to, "<=")
+
+    amount = get_select_values("amount", select_config)
+    if amount:
+        if amount[0].startswith("<>"):
+            if len(amount) != 3:  # noqa: PLR2004
+                raise MnyXlsConfigError("'select': 'amount': operator requires 3 values ['<>, <lower>, <upper>']")
+
+            a, b = _amount_currency(amount[1]), _amount_currency(amount[2])
+            if b < a:
+                a, b = b, a
+
+            q_select.where_raw_value("Amount", "? AND ?", "BETWEEN", value_params=(a.nofmt(), b.nofmt()))
+        else:
+            if len(amount) == 1:
+                match = RE_AMOUNT.fullmatch(amount[0])
+                op, value = match.groups() if match else ("=", amount[0])
+            else:
+                op, value = amount[0], amount[1]
+
+            if op not in ("=", "!", "!=", "<", "<=", ">", ">="):
+                raise MnyXlsConfigError(f"'select': 'amount': '{op}': Invalid operator.")
+
+            if op.startswith("!"):
+                op = "<>"
+
+            value = _amount_currency(value)
+
+            q_select.where_value("Amount", value.nofmt(), op)

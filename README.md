@@ -186,6 +186,7 @@ Some options do not apply to workbook selects.
 | `account` | Select transactions for named accounts. |
 | `account_category` | Select transactions for accounts by category. |
 | `account_classification` | Select transactions for accounts by classification. |
+| `amount` | Select transactions by amount; accepts formats `AMOUNT`, `=AMOUNT`, `!AMOUNT`, `<AMOUNT`, `<=AMOUNT`, `>AMOUNT`, `>=AMOUNT` or the list [`<>`, `LOW`, `HIGH`] for "BETWEEN HIGH AND LOW". |
 | `era` | Select transactions for a defined era. |
 | `category` | Select transactions with given category and subcategory; `"category"` will select a category and its subcategories; `"category:subcategory"` will select specific subcategories; `"category:"` will select only the "root" category (whether it has subcategories or not.) [Worksheet only]  |
 | `payee` | Select transactions for a payee name. [Worksheet only] |

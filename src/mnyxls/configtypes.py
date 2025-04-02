@@ -16,6 +16,8 @@ ConfigReportsT = list[str | Path]
 ConfigAccountCategoriesT = dict[str, list[str]]  # `account_categories`
 YYYYTypeT = str | int | Sequence[str | int]  # !YEAR, YEAR | list[YEAR,...]
 
+# MM.NN or "opMM.NN" or ["op", MM.NN] where `op` is one of "<", ">", "<=", ">=", "<>", "!="
+ConfigSelectAmountT = str | float | int | Sequence[str | float | int]
 
 ######################################################################
 # Typed dictionaries to describe configuration file `select` directives
@@ -37,6 +39,7 @@ class WorksheetConfigSelectT(TypedDict):
     account: NotRequired[str | list[str]]
     account_category: NotRequired[str | list[str]]
     account_classification: NotRequired[str | list[str]]
+    amount: NotRequired[ConfigSelectAmountT]
     category: NotRequired[str | list[str]]
     era: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
@@ -56,6 +59,7 @@ class WorksheetConfigSelectTxnsT(TypedDict):
     account: NotRequired[str | list[str]]
     account_category: NotRequired[str | list[str]]
     account_classification: NotRequired[str | list[str]]
+    amount: NotRequired[ConfigSelectAmountT]
     category: NotRequired[str | list[str]]
     era: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
@@ -112,6 +116,7 @@ class ConfigRewriteSelectT(TypedDict):
     """Structure of the `select` directive in `rewrites` configuration."""
 
     account: NotRequired[str | list[str]]
+    amount: NotRequired[ConfigSelectAmountT]
     category: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
     date_from: NotRequired[str]  # YYYY | YYYY-MM | YYYY-MM-DD

@@ -1,0 +1,6 @@
+workbook:
+  worksheets:
+    "Sheet1":
+      sheet_type: "txns"
+      select:
+        amount: "- 223.92"

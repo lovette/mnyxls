@@ -37,6 +37,7 @@ ELLIPSIS_LEN = len("...")
 UNION_PART_TYPES = {
     "bool": bool,
     "int": int,
+    "float": float,
     "pathlib.Path": Path,  # Python 3.12
     "pathlib._local.Path": Path,  # Python 3.13
     "str": str,
@@ -640,6 +641,8 @@ def get_values_and_cond(value_or_values: str | Sequence[str]) -> tuple[Sequence[
 
 def get_select_values(select_key: str, config: ConfigSelectUnionT) -> Sequence[str]:
     """Return list of values (even if directive is a scalar value) for a 'select' configuration directive key.
+
+    Returns an empty list if the key is not found in the configuration.
 
     Args:
         select_key (str): Select directive.
