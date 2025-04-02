@@ -126,7 +126,7 @@ def caplog_errors(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
         caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
 
     Returns:
-        list[logging.LogRecord]: A list of warnings captured by caplog.
+        list[logging.LogRecord]
     """
     return [record for record in caplog.get_records("call") if record.levelno > logging.WARNING]
 
@@ -138,9 +138,33 @@ def caplog_warnings(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]
         caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
 
     Returns:
-        list[logging.LogRecord]: A list of warnings captured by caplog.
+        list[logging.LogRecord]
     """
     return [record for record in caplog.get_records("call") if record.levelno == logging.WARNING]
+
+
+def caplog_info(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
+    """Return a list of INFO records emitted by `logging`.
+
+    Args:
+        caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
+
+    Returns:
+        list[logging.LogRecord]
+    """
+    return [record for record in caplog.get_records("call") if record.levelno == logging.INFO]
+
+
+def caplog_debug(caplog: pytest.LogCaptureFixture) -> list[logging.LogRecord]:
+    """Return a list of DEBUG records emitted by `logging`.
+
+    Args:
+        caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
+
+    Returns:
+        list[logging.LogRecord]
+    """
+    return [record for record in caplog.get_records("call") if record.levelno == logging.DEBUG]
 
 
 def caplog_warning_messages(caplog: pytest.LogCaptureFixture) -> Sequence[str]:
@@ -150,9 +174,33 @@ def caplog_warning_messages(caplog: pytest.LogCaptureFixture) -> Sequence[str]:
         caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
 
     Returns:
-        Sequence[str]: A list of warnings captured by caplog.
+        Sequence[str]
     """
     return tuple([record.message for record in caplog_warnings(caplog)])
+
+
+def caplog_info_messages(caplog: pytest.LogCaptureFixture) -> Sequence[str]:
+    """Return a list of INFO messages emitted by `logging`.
+
+    Args:
+        caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
+
+    Returns:
+        Sequence[str]
+    """
+    return tuple([record.message for record in caplog_info(caplog)])
+
+
+def caplog_debug_messages(caplog: pytest.LogCaptureFixture) -> Sequence[str]:
+    """Return a list of DEBUG messages emitted by `logging`.
+
+    Args:
+        caplog (pytest.LogCaptureFixture): Provides access and control of log capturing.
+
+    Returns:
+        Sequence[str]
+    """
+    return tuple([record.message for record in caplog_debug(caplog)])
 
 
 def assert_no_caplog_errors(caplog: pytest.LogCaptureFixture) -> None:
