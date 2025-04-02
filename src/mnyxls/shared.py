@@ -29,10 +29,7 @@ if TYPE_CHECKING:
     from .configtypes import (
         CommonConfigFileT,
         ConfigFileValueT,
-        WorkbookConfigSelectT,
-        WorkbookConfigT,
-        WorksheetConfigSelectT,
-        WorksheetConfigT,
+        ConfigSelectUnionT,
     )
 
 ELLIPSIS_LEN = len("...")
@@ -631,15 +628,12 @@ def get_values_and_cond(value_or_values: str | Sequence[str]) -> tuple[Sequence[
     return values, "="
 
 
-def get_select_values(
-    select_key: str,
-    config: WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT,
-) -> Sequence[str]:
+def get_select_values(select_key: str, config: ConfigSelectUnionT) -> Sequence[str]:
     """Return list of values (even if directive is a scalar value) for a 'select' configuration directive key.
 
     Args:
         select_key (str): Select directive.
-        config (WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT): Workbook or worksheet configuration.
+        config (ConfigSelectUnionT): Workbook or worksheet configuration.
 
     Returns:
         Sequence[str]
@@ -663,15 +657,12 @@ def get_select_values(
     return [str(v) for v in values]
 
 
-def get_select_values_and_cond(
-    select_key: str,
-    config_select: WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT,
-) -> tuple[Sequence[str], Literal["=", "<>"]]:
+def get_select_values_and_cond(select_key: str, config_select: ConfigSelectUnionT) -> tuple[Sequence[str], Literal["=", "<>"]]:
     """Return a value list (even for a single item) and condition.
 
     Args:
         select_key (str): Select directive.
-        config_select (WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT): Workbook or worksheet configuration.
+        config_select (ConfigSelectUnionT): Workbook or worksheet configuration.
 
     Returns:
         tuple[Sequence[str], str]: (values, condition)
@@ -680,14 +671,11 @@ def get_select_values_and_cond(
     return get_values_and_cond(values)
 
 
-def config_select_allow(
-    config_select: WorkbookConfigSelectT | WorksheetConfigSelectT,
-    allow_directives: Container | None,
-) -> WorkbookConfigSelectT | WorksheetConfigSelectT:
+def config_select_allow(config_select: ConfigSelectUnionT, allow_directives: Container | None) -> ConfigSelectUnionT:
     """Filter `select` configuration to only directives that are allowed.
 
     Args:
-        config_select (WorkbookConfigSelectT | WorksheetConfigSelectT): Config select configuration.
+        config_select (ConfigSelectUnionT): Config with `select` criteria.
         allow_directives (set|dict|list|tuple): Allowed directives.
             If None, all directives are allowed.
 
@@ -699,7 +687,7 @@ def config_select_allow(
 
     assert bool(allow_directives), "If you want to exclude all directives, set to None."
 
-    new_config_select: WorkbookConfigSelectT | WorksheetConfigSelectT = {}
+    new_config_select: ConfigSelectUnionT = {}
 
     for k, v in config_select.items():
         if k in allow_directives:
@@ -709,7 +697,7 @@ def config_select_allow(
 
 
 def config_select_remove(
-    config_select: WorkbookConfigSelectT | WorksheetConfigSelectT,
+    config_select: ConfigSelectUnionT,
     remove_directives: Container | None,
 ) -> None:
     """Remove directives from `select` configuration.
@@ -717,7 +705,7 @@ def config_select_remove(
     Argument is modified in place.
 
     Args:
-        config_select (WorkbookConfigSelectT | WorksheetConfigSelectT): Config select configuration.
+        config_select (ConfigSelectUnionT): Config select configuration.
         remove_directives (set|dict|list|tuple): Directives to remove.
             If None, all directives are allowed.
     """

@@ -190,6 +190,8 @@ class ConfigAccountT(TypedDict):
 ConfigAccountsT = dict[str, ConfigAccountT]  # `accounts`
 
 
+ConfigSelectUnionT = WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT
+
 ######################################################################
 # Typed dictionaries to describe top-level configuration files.
 
