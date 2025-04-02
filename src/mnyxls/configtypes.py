@@ -108,6 +108,17 @@ class WorkbookConfigSelectT(TypedDict):
     yyyy: NotRequired[YYYYTypeT]
 
 
+class ConfigRewriteSelectT(TypedDict):
+    """Structure of the `select` directive in `rewrites` configuration."""
+
+    account: NotRequired[str | list[str]]
+    category: NotRequired[str | list[str]]
+    payee: NotRequired[str | list[str]]
+    date_from: NotRequired[str]  # YYYY | YYYY-MM | YYYY-MM-DD
+    date_to: NotRequired[str]  # YYYY | YYYY-MM | YYYY-MM-DD
+    yyyy: NotRequired[YYYYTypeT]
+
+
 ######################################################################
 # Typed dictionaries to describe configuration file `options` directives
 
@@ -190,7 +201,19 @@ class ConfigAccountT(TypedDict):
 ConfigAccountsT = dict[str, ConfigAccountT]  # `accounts`
 
 
-ConfigSelectUnionT = WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT
+class ConfigRewriteT(TypedDict):
+    """Structure of main configuration directive `rewrites`."""
+
+    # These fields are applied as the `update` criteria.
+    category: NotRequired[str]
+    memo: NotRequired[str]
+    payee: NotRequired[str]
+    txndate: NotRequired[str]  # YYYY-MM-DD
+
+    select: ConfigRewriteSelectT
+
+
+ConfigSelectUnionT = WorkbookConfigT | WorksheetConfigT | WorkbookConfigSelectT | WorksheetConfigSelectT | ConfigRewriteSelectT
 
 ######################################################################
 # Typed dictionaries to describe top-level configuration files.
@@ -226,6 +249,7 @@ class MainConfigFileT(CommonConfigFileT):
     opt_recommend_reports: NotRequired[bool]  # command line option
     report_paths: NotRequired[list[Path]]  # command line option
     reports: NotRequired[ConfigReportsT]  # "report_paths" in config file
+    rewrites: NotRequired[Sequence[ConfigRewriteT]]
     save_interim_reports: NotRequired[bool]
     verbose: NotRequired[int]  # command line option
     workbook: NotRequired[WorkbookConfigT]

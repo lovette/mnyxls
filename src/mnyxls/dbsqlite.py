@@ -39,6 +39,7 @@ from .report import (
 from .report_balances import MoneyReportAccountBalances
 from .report_balancesdetails import MoneyReportAccountBalancesWithDetails
 from .report_spending import MoneyReportIncomeAndSpending
+from .rewritetxns import rewrites_apply_txns
 from .shared import MnyXlsConfigError, MnyXlsRuntimeError, config_warning, parse_yyyymmdd_flex, pd_read_sql, split_category_pair
 
 if TYPE_CHECKING:
@@ -1475,6 +1476,8 @@ def db_create(
         _db_create_indexes(conn)  # after _db_insert_txns for better INSERT performance
 
         _db_update_txns_xfers(conn)  # after _db_create_indexes for performance
+
+        rewrites_apply_txns(conn, config)  # after _db_create_indexes and before _db_insert_payees, etc.
 
         _db_insert_loans(conn, reports)
         _db_insert_accounts(conn, reports)  # after _db_insert_loans

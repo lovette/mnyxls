@@ -1,0 +1,3 @@
+rewrites:
+  - select:
+      payee: "United States Treasury"

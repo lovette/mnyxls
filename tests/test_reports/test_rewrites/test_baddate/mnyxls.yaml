@@ -1,0 +1,4 @@
+rewrites:
+  - txndate: "1/1/2023"
+    select:
+      payee: "United States Treasury"

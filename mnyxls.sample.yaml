@@ -122,6 +122,32 @@ eras:
     "date_to": "..."
 
 ######################################################################
+# Rewrite rules
+#
+# This list of rules is applied to the report data to modify transaction details.
+# Each rule defines fields to modify and the transactions changes are applied to.
+# The rules are applied in the order they are defined.
+# At least one modify value field must be specified.
+# Changes are applied to transactions that match the `select` criteria.
+# All select fields must match the transaction to be modified.
+# New payees and categories can be specified.
+
+# rewrites:
+#     - txndate: "New date" # YYYY-MM-DD
+#       payee: "New payee"
+#       category: "New category : New subcategory"
+#       memo: "New memo"
+#       select:
+#         account: ...
+#         category: ...
+#         payee: ...
+#         date_from: ...
+#         date_to: ...
+#         yyyy: ...
+#     - txndate: "New date"
+#       ...
+
+######################################################################
 # Excel Workbook
 #
 # The workbook can be defined in the main configuration file or a separate configuration file.

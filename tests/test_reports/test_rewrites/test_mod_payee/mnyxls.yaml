@@ -1,0 +1,5 @@
+rewrites:
+  - payee: "US Treasury Dept"
+    select:
+      account: "Checking"
+      payee: "United States Treasury"

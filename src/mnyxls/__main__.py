@@ -17,6 +17,7 @@ from .configtypes import ConfigEraT, MainConfigFileT
 from .dbsqlite import db_create
 from .report import ReportType
 from .reports import gather_reports, parse_reports
+from .rewritetxns import rewrites_validate_config
 from .shared import (
     MnyXlsConfigError,
     MnyXlsRuntimeError,
@@ -118,6 +119,10 @@ def _validate_main_config(config: MainConfigFileT) -> None:
     config_eras = config.get("eras")
     if config_eras:
         _validate_eras(config_eras)
+
+    config_rewrites = config.get("rewrites")
+    if config_rewrites:
+        rewrites_validate_config(config, config_rewrites)
 
 
 ######################################################################
