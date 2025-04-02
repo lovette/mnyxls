@@ -12,6 +12,7 @@ from mysqlstmt import Insert, Select, Stmt, Update
 from pandas._libs.tslibs.parsing import DateParseError  # pyright: ignore[reportPrivateImportUsage]
 
 from .currencydecimal import CurrencyDecimal, currency_to_value
+from .dbcore import db_execute_stmt
 from .dbschema import (
     TABLE_ACCOUNT_BALANCES,
     TABLE_ACCOUNTS,
@@ -92,26 +93,6 @@ def _db_trace_log_sql(sql: str) -> None:
     logger.debug(f"> {sql}")
 
 
-def _conn_execute_sql(conn: sqlite3.Connection, q: Stmt) -> sqlite3.Cursor:
-    """Execute a mysqlstmt query against a SQLite database connection.
-
-    Args:
-        conn (sqlite3.Connection): SQLite connection.
-        q (Stmt): mysqlstmt
-
-    Returns:
-        Cursor
-    """
-    sql, params = q.sql()
-
-    # > logger.debug(f"SQL> {sql} {params}")
-
-    if params is None:
-        params = []  # sqlite doesn't allow None
-
-    return conn.execute(sql, params)
-
-
 def _conn_execute_count_rows(conn: sqlite3.Connection, q_select: Select) -> int:
     """Execute a Select query against a SQLite database connection and return row count.
 
@@ -124,7 +105,7 @@ def _conn_execute_count_rows(conn: sqlite3.Connection, q_select: Select) -> int:
     """
     q_select.column_expr("COUNT(*)", named="count")
 
-    row = _conn_execute_sql(conn, q_select).fetchone()
+    row = db_execute_stmt(conn, q_select).fetchone()
 
     assert row is not None
     assert isinstance(row[0], int)
@@ -464,9 +445,9 @@ def _db_resort_table(conn: sqlite3.Connection, table_name: str, order_by: str) -
 
     with conn:
         _db_create_table(conn, table_name, temp_table, temp=True)
-        _conn_execute_sql(conn, q_insert_temp)
+        db_execute_stmt(conn, q_insert_temp)
         conn.execute(f"DELETE FROM `{table_name}`")  # noqa: S608
-        _conn_execute_sql(conn, q_insert_sorted)
+        db_execute_stmt(conn, q_insert_sorted)
         _db_drop_table(conn, temp_table)
 
 
@@ -536,8 +517,8 @@ def _db_update_txns_xfers(conn: sqlite3.Connection) -> None:
     q_update2.where_value("XferAccount", None, "<>")
 
     with conn:
-        _conn_execute_sql(conn, q_update)
-        _conn_execute_sql(conn, q_update2)
+        db_execute_stmt(conn, q_update)
+        db_execute_stmt(conn, q_update2)
 
 
 def _db_insert_loans(conn: sqlite3.Connection, reports: dict[ReportType, MoneyReport]) -> None:
@@ -605,7 +586,7 @@ def _db_insert_accounts(conn: sqlite3.Connection, reports: dict[ReportType, Mone
         q_insert.columns(insert_cols)
         q_insert.select(q_select)
 
-        _conn_execute_sql(conn, q_insert)
+        db_execute_stmt(conn, q_insert)
 
     def _insert_txninv_accounts() -> None:
         # Accounts directly referenced in TxnsInv
@@ -634,7 +615,7 @@ def _db_insert_accounts(conn: sqlite3.Connection, reports: dict[ReportType, Mone
         q_insert.columns(insert_cols)
         q_insert.select(q_select)
 
-        _conn_execute_sql(conn, q_insert)
+        db_execute_stmt(conn, q_insert)
 
     def _insert_xfer_accounts() -> None:
         # Transactions for investment accounts and loans are not included in the "Account transactions report"
@@ -680,7 +661,7 @@ def _db_insert_accounts(conn: sqlite3.Connection, reports: dict[ReportType, Mone
             q_upsert.set_value("TxnDateMin", row.TxnDateMin)
             q_upsert.set_value("TxnDateMax", row.TxnDateMax)
 
-            _conn_execute_sql(conn, q_upsert)
+            db_execute_stmt(conn, q_upsert)
 
     def _insert_loan_accounts() -> None:
         # Accounts referenced in loan terms report
@@ -702,7 +683,7 @@ def _db_insert_accounts(conn: sqlite3.Connection, reports: dict[ReportType, Mone
         q_insert.columns(insert_cols)
         q_insert.select(q_select)
 
-        _conn_execute_sql(conn, q_insert)
+        db_execute_stmt(conn, q_insert)
 
     def _insert_report_account_balances() -> None:
         # Insert accounts included in the account balances report.
@@ -720,7 +701,7 @@ def _db_insert_accounts(conn: sqlite3.Connection, reports: dict[ReportType, Mone
             q_upsert.set_value("Account", row.Account)
             q_upsert.on_conflict("Account").do_nothing()  # ignore if already exists
 
-            _conn_execute_sql(conn, q_upsert)
+            db_execute_stmt(conn, q_upsert)
 
     def _insert_report_balances_details() -> None:
         # Insert accounts included in the account balances with details report.
@@ -738,7 +719,7 @@ def _db_insert_accounts(conn: sqlite3.Connection, reports: dict[ReportType, Mone
             q_upsert.set_value("Account", row.Account)
             q_upsert.on_conflict("Account").do_nothing()  # ignore if already exists
 
-            _conn_execute_sql(conn, q_upsert)
+            db_execute_stmt(conn, q_upsert)
 
     for fn_insert in (
         _insert_txninv_accounts,  # before _insert_txn_accounts because it sets classification
@@ -783,7 +764,7 @@ def _db_update_accounts_reports(conn: sqlite3.Connection, reports: dict[ReportTy
                 q_update.set_value("AccountCategory", account_subtype)  # Bank, Cash, Investment, Credit Card, Loan, etc.
                 q_update.where_value("Account", account_name)
 
-                _conn_execute_sql(conn, q_update)
+                db_execute_stmt(conn, q_update)
 
     def _update_account_details() -> None:
         # Update account properties included in the account balances with details report.
@@ -805,7 +786,7 @@ def _db_update_accounts_reports(conn: sqlite3.Connection, reports: dict[ReportTy
             q_update.set_value("AccountNumber", row["AccountNumber"] if "AccountNumber" in df_nonan.columns else None)
             q_update.set_value("AccountLimit", currency_to_value(row["Limit"]) if "Limit" in df_nonan.columns else None)
 
-            _conn_execute_sql(conn, q_update)
+            db_execute_stmt(conn, q_update)
 
     for fn_update in (
         _update_account_types,
@@ -887,7 +868,7 @@ def _db_insert_account_balances(conn: sqlite3.Connection, reports: dict[ReportTy
             q_insert.set_value("Date", col_date)
             q_insert.set_value("Balance", currency_to_value(balance))
 
-            _conn_execute_sql(conn, q_insert)
+            db_execute_stmt(conn, q_insert)
 
 
 def _db_update_accounts_classification(conn: sqlite3.Connection, config: MainConfigFileT) -> None:  # noqa: C901
@@ -934,7 +915,7 @@ def _db_update_accounts_classification(conn: sqlite3.Connection, config: MainCon
                 q_update.set_value("AccountCategory", category)
                 q_update.where_value("Account", account)
 
-                _conn_execute_sql(conn, q_update)
+                db_execute_stmt(conn, q_update)
 
     config_accounts: ConfigAccountsT | None = config.get("accounts", {})
     category_classification = _get_category_classification_map()
@@ -998,7 +979,7 @@ def _db_update_accounts_config(conn: sqlite3.Connection, config: MainConfigFileT
             q_update.set_value("ClosedDate", closed_date)
             q_update.where_value("Account", account_name)
 
-            _conn_execute_sql(conn, q_update)
+            db_execute_stmt(conn, q_update)
 
     config_accounts: ConfigAccountsT | None = config.get("accounts")
 
@@ -1039,7 +1020,7 @@ def _db_insert_payees(conn: sqlite3.Connection) -> None:
     q_insert.select(q_select)
 
     with conn:
-        _conn_execute_sql(conn, q_insert)
+        db_execute_stmt(conn, q_insert)
 
 
 def _db_insert_categories(conn: sqlite3.Connection) -> None:
@@ -1066,7 +1047,7 @@ def _db_insert_categories(conn: sqlite3.Connection) -> None:
     q_insert.select(q_select)
 
     with conn:
-        _conn_execute_sql(conn, q_insert)
+        db_execute_stmt(conn, q_insert)
 
 
 def _db_update_categories_reports(conn: sqlite3.Connection, reports: dict[ReportType, MoneyReport]) -> None:
@@ -1087,7 +1068,7 @@ def _db_update_categories_reports(conn: sqlite3.Connection, reports: dict[Report
             q_update.set_value("TxnType", txn_type)  # Income, Expense
             q_update.where_value("Category", categories, "IN")
 
-            _conn_execute_sql(conn, q_update)
+            db_execute_stmt(conn, q_update)
 
     for report_type in (ReportType.INCOME_SPENDING, ReportType.MONTHLY_INCOME_EXPENSES):
         report = reports.get(report_type)
@@ -1125,7 +1106,7 @@ def _db_update_categories_config(conn: sqlite3.Connection, config: MainConfigFil
                 q_update.set_value(table_field, txn_type)
                 q_update.where_value("Category", categories, "IN")
 
-                _conn_execute_sql(conn, q_update)
+                db_execute_stmt(conn, q_update)
 
         with conn:
             for txn_type, category_pairs in field_set_subcategories.items():
@@ -1135,7 +1116,7 @@ def _db_update_categories_config(conn: sqlite3.Connection, config: MainConfigFil
                     q_update.where_value("Category", category)
                     q_update.where_value("Subcategory", subcategory)
 
-                    _conn_execute_sql(conn, q_update)
+                    db_execute_stmt(conn, q_update)
 
     category_types: dict[str, list[str]] | None = config.get("category_types")
     category_classes: dict[str, list[str]] | None = config.get("category_classes")
@@ -1164,7 +1145,7 @@ def _db_update_categories_defaults(conn: sqlite3.Connection, config: MainConfigF
         q_update.where_value("TxnType", None)
 
         with conn:
-            _conn_execute_sql(conn, q_update)
+            db_execute_stmt(conn, q_update)
 
     def _set_default_txnclass() -> None:
         # TxnClass for non-expense categories defaults to its TxnType
@@ -1174,7 +1155,7 @@ def _db_update_categories_defaults(conn: sqlite3.Connection, config: MainConfigF
         q_update.where_value("TxnClass", None)
 
         with conn:
-            _conn_execute_sql(conn, q_update)
+            db_execute_stmt(conn, q_update)
 
         # Categories without a TxnClass are considered discretionary (by default)
         q_update = Update(TABLE_CATEGORIES)
@@ -1182,7 +1163,7 @@ def _db_update_categories_defaults(conn: sqlite3.Connection, config: MainConfigF
         q_update.where_value("TxnClass", None)
 
         with conn:
-            _conn_execute_sql(conn, q_update)
+            db_execute_stmt(conn, q_update)
 
     _set_default_txntype()
     _set_default_txnclass()
@@ -1227,7 +1208,7 @@ def _db_insert_category_balances(conn: sqlite3.Connection, reports: dict[ReportT
                 q_upsert.on_conflict(("Category", "Date")).do_nothing()
 
                 try:
-                    _conn_execute_sql(conn, q_upsert)
+                    db_execute_stmt(conn, q_upsert)
                 except sqlite3.IntegrityError as err:
                     logger.debug(f"'{category}': {err}")
                     raise
@@ -1270,7 +1251,7 @@ def _db_insert_eras_config(conn: sqlite3.Connection, config: MainConfigFileT) ->
             q_insert.set_value("EraDateTo", date_to)
 
         with conn:
-            _conn_execute_sql(conn, q_insert)
+            db_execute_stmt(conn, q_insert)
 
     def _validate_and_sort_eras(config_eras: ConfigErasT) -> ConfigErasT:
         # Configure eras.
@@ -1373,7 +1354,7 @@ def _db_update_txns_eras(conn: sqlite3.Connection) -> None:
         elif date_to is not None:
             q_update.where_value("Date", date_to, "<=")
 
-        _conn_execute_sql(conn, q_update)
+        db_execute_stmt(conn, q_update)
 
     def _warn_era_unassigned() -> None:
         q_select = Select(TABLE_TXNS)
@@ -1458,7 +1439,7 @@ def _db_create_views(conn: sqlite3.Connection) -> None:
             _db_drop_view(conn, view_name)
 
             if isinstance(sql, Stmt):
-                _conn_execute_sql(conn, sql)
+                db_execute_stmt(conn, sql)
             else:
                 conn.execute(sql, [])
 
