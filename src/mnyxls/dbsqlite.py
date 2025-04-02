@@ -142,43 +142,6 @@ def _list_account_classifications(conn: sqlite3.Connection) -> dict[str, list[st
     return dict(categories_by_classification)
 
 
-def db_get_txndates(conn: sqlite3.Connection, account_name: str | None = None) -> tuple[date | None, date | None]:
-    """Get the min and max transaction dates across accounts or for an individual account.
-
-    Args:
-        conn (sqlite3.Connection): SQLite connection.
-        account_name (str): Account name.
-
-    Returns:
-        tuple[date | None, date | None]
-    """
-    q_select = Select(TABLE_ACCOUNTS)
-    q_select.column("TxnDateMin")
-    q_select.column("TxnDateMax")
-    q_select.where_value("TxnDateMin", None, "<>")
-
-    if account_name:
-        q_select.where_value("Account", account_name)
-
-    df_select = pd_read_sql(conn, q_select, date_cols=["TxnDateMin", "TxnDateMax"])
-
-    if df_select.empty:
-        return None, None
-
-    # Using min() is odd but shorter than:
-    # > pd.to_datetime(df_select["TxnDateMin"].to_numpy()[0]).date(),
-
-    df_dates = df_select[df_select["TxnDateMin"].notna()]
-    min_date = df_dates["TxnDateMin"].min()
-    assert isinstance(min_date, date)
-
-    df_dates = df_select[df_select["TxnDateMax"].notna()]
-    max_date = df_dates["TxnDateMax"].min()
-    assert isinstance(max_date, date)
-
-    return (min_date, max_date)
-
-
 def _db_defer_foreign_keys(conn: sqlite3.Connection) -> None:
     """Disable foreign key constraints.
 

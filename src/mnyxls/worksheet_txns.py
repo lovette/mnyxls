@@ -11,6 +11,7 @@ from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd
 from .report import TxnType
 from .shared import config_warning, pd_read_sql, validate_config_typed_dict
+from .shared_txns import apply_txns_select_where
 from .worksheet import WORKSHEET_COLWIDTH_MAX, MoneyWorksheet
 from .worksheet_txns_base import MoneyWorksheetTxnsBase
 
@@ -158,7 +159,7 @@ class MoneyWorksheetTxns(MoneyWorksheetTxnsBase):
 
         q_select.column([col for col in select_columns if col not in drop_cols])
 
-        self.apply_txns_select_where(conn, q_select, self.worksheet_config)
+        apply_txns_select_where(conn, q_select, self.worksheet_config)
 
         q_select.order_by((f"`{date_col}`", "Category", "Subcategory", "Payee", "Account", "N"))
 
