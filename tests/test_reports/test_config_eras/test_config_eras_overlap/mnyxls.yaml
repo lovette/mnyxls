@@ -1,6 +1,3 @@
-reports:
-  - "txns_2018_2022.csv"
-
 eras:
   "Era A":
     "date_from": "2019"
