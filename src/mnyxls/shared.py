@@ -392,6 +392,16 @@ def validate_config_typed_dict(  # noqa: C901, PLR0912, PLR0915
 ) -> None:
     """Validate configuration dictionary against its TypedDict properties.
 
+    This function checks that the keys in `typed_dict` are required or not as defined in its `TypedDict` class,
+    and that the values are of the correct type.
+    If a key is not recognized, a warning is logged.
+    If a key is required but not present, an error is raised.
+    If a key is present but not of the correct type, an error is raised.
+    If a key is a union type, it checks if the value is of any of the types in the union.
+    If a key is a TypedDict, it recursively validates the nested dictionary.
+    If a key is a list or tuple, it checks if the value is a sequence, but does not check the type of the items in the sequence.
+    If a key is a dictionary, it checks if the value is a mapping, but it does not check the type of the values in the mapping.
+
     Args:
         typed_dict (Mapping[str, Any]): Configuration dictionary defined as a `TypedDict`.
         typed_dict_cls (type[object]): Configuration dictionary type.
