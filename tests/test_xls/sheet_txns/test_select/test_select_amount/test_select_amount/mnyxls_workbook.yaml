@@ -1,45 +1,39 @@
 workbook:
+  skipempty: false
   worksheets:
     "EQ":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount: "-223.92"
     "NEQ":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount: "!-223.92"
         payee: "Amazon"
     "LT":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount: "< -997.80"
     "LTE":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount: "<=-997.80"
     "GT":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount: "> 10,928.45"
     "GTE":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount: ">= 10,928.45"
     "BETWEEN":
       sheet_type: "txns"
-      skipempty: false
       select:
         account: "Visa"
         amount:

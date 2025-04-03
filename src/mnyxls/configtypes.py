@@ -194,8 +194,10 @@ class WorkbookConfigT(TypedDict):
     """Structure of account configuration directive `workbook`."""
 
     autofit: NotRequired[bool]
-    worksheets: dict[str, WorksheetConfigT]
     select: NotRequired[WorkbookConfigSelectT]
+    skipempty: NotRequired[bool]
+    use_existing: NotRequired[bool]
+    worksheets: dict[str, WorksheetConfigT]
 
 
 class ConfigAccountT(TypedDict):

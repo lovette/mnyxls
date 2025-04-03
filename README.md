@@ -284,8 +284,8 @@ Use column value `total` to show only the total for each row.
 | Option | Description |
 | --- | --- |
 | `autofit` | Fit columns to their content. [Default: Workbook setting] |
-| `use_existing` | Replace sheet with same name if it exists in the template file. A sheet can only be replaced once. [Default: No] |
-| `skipempty` | Do not create sheet if it is empty. [Default: Yes] |
+| `skipempty` | Do not create sheet if it is empty. [Default: Workbook setting] |
+| `use_existing` | Replace sheet with same name if it exists in the template file. A sheet can only be replaced once. [Default: Workbook setting] |
 
 #### Txns options
 
@@ -299,6 +299,8 @@ Use column value `total` to show only the total for each row.
 | Option | Description |
 | --- | --- |
 | `autofit` | Fit columns to their content. [Default: Yes] |
+| `skipempty` | Do not create sheet if it is empty. [Default: Yes] |
+| `use_existing` | Replace sheet with same name if it exists in the template file. A sheet can only be replaced once. [Default: No] |
 
 ### Workbook template
 

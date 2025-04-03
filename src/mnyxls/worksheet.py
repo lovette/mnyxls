@@ -566,7 +566,7 @@ class MoneyWorksheet(ABC):
 
         df_worksheet = self.get_sheet_data(conn)
 
-        skipempty = self.worksheet_config.get("skipempty", True)
+        skipempty = self.get_config_value("skipempty", default=True)
 
         if df_worksheet.empty and skipempty:
             logger.debug(f"... worksheet '{safe_sheet_name}' has no data, skipping")
@@ -1015,7 +1015,7 @@ class MoneyWorksheet(ABC):
             assert safe_sheet_name.upper() not in writer_sheet_names_uc
 
         if safe_sheet_name.upper() in writer_sheet_names_uc:
-            use_existing_sheet = self.worksheet_config.get("use_existing", False)
+            use_existing_sheet = self.get_config_value("use_existing", default=False)
 
             if use_existing_sheet:
                 if safe_sheet_name not in self.workbook.can_use_existing_sheet:
