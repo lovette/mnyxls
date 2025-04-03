@@ -51,4 +51,4 @@ def test_config_eras_unassigned(  # noqa: D103
         out_files = list(runner_cwd.glob("*.sqlite3"))
         assert not out_files, "Expected no .sqlite3 files"
 
-        assert "2459 transactions do not have an era assigned." in caplog_warning_messages(caplog)
+        assert "2500 transactions do not have an era assigned." in caplog_warning_messages(caplog)

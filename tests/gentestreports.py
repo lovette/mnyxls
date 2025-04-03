@@ -73,7 +73,9 @@ del ACCOUNTS_PAYEES_CATEGORIES["Credit cards"]
 
 ACCOUNTS_PAYEES_CATEGORIES = MappingProxyType(ACCOUNTS_PAYEES_CATEGORIES)  # Change to read only
 ACCOUNT_NAMES = tuple(sorted(ACCOUNTS_PAYEES_CATEGORIES.keys()))
+TWO_PCT = 0.02  # 2% of transactions
 FIVE_PCT = 0.05  # Assign Num, Memo to only 5% of transactions
+TWENTY_PCT = 0.2  # 20% of transactions
 CRLF = "\r\n"  # Write CSV with CRLF line endings to match Money's output
 CURRENCY_ZERO = CurrencyDecimal("0")
 
@@ -92,7 +94,7 @@ def _rand_currency_portion(amount: CurrencyDecimal, portion_min: float, portion_
     return _rand_currency(amount_f * portion_min, amount_f * portion_max)
 
 
-def _generate_account_txns(account: str) -> pd.DataFrame:
+def _generate_account_txns(account: str) -> pd.DataFrame:  # noqa: PLR0915
     # Generate a dataframe with random transactions for the given account.
     # Each account has a different set of payees and categories.
 
@@ -131,6 +133,7 @@ def _generate_account_txns(account: str) -> pd.DataFrame:
         category_or_splits = random.choice(categories)
         is_split = not isinstance(category_or_splits, str)
         is_income = (category_or_splits if not is_split else category_or_splits[0]) in INCOME_CATEGORIES
+        is_credit_refund = is_credit_account and not is_income and not is_split and random.random() < TWO_PCT
         amount_min, amount_max = (100.00, 5000.00) if is_income else (-1000.00, -1.00)
         amount_txn = _rand_currency(amount_min, amount_max)
 
@@ -160,6 +163,24 @@ def _generate_account_txns(account: str) -> pd.DataFrame:
                 data["Split"].append("Y")
 
             assert amount_txn == CURRENCY_ZERO
+        elif is_credit_refund:
+            # For credit accounts, a small percentage of transactions can be refunds.
+
+            refund_date = min(txndate + timedelta(days=random.randint(1, 90)), end_date)
+            refund_amount = amount_txn * -1
+
+            if random.random() < TWENTY_PCT:
+                # Test partial refunds, 75-100% of debit
+                refund_amount = _rand_currency_portion(refund_amount, 0.75, 1.0)
+
+            data["Date"].append(refund_date)
+            data["Num"].append(None)
+            data["Payee"].append(payee)
+            data["Account"].append(account)
+            data["Memo"].append(f"Refund of {txndate.strftime('%m/%d/%Y')}")
+            data["Category"].append(category_or_splits)
+            data["Amount"].append(refund_amount)
+            data["Split"].append(None)
 
     return pd.DataFrame(data)
 
