@@ -610,7 +610,7 @@ def is_sequence(obj: Any) -> bool:  # noqa: ANN401
     return isinstance(obj, Sequence) and not isinstance(obj, str)
 
 
-def get_values_and_cond(value_or_values: str | Sequence[str]) -> tuple[Sequence[str], Literal["=", "<>"]]:
+def get_values_and_cond(value_or_values: str | Sequence[str]) -> tuple[list[str], Literal["=", "<>"]]:
     """Return a value list (even for a single item) and condition.
 
     Args:
@@ -632,14 +632,14 @@ def get_values_and_cond(value_or_values: str | Sequence[str]) -> tuple[Sequence[
         assert isinstance(values[0], str | int | bool)  # ConfigFileScalarT
 
     if values and values[0].startswith("!"):
-        # First value can be "!" or "!value"
+        # First value can be "!" or "!value" or "!%" or "!%value"
         values = values[1:] if values[0] == "!" else [values[0].removeprefix("!"), *values[1:]]
         return values, "<>"
 
     return values, "="
 
 
-def get_select_values(select_key: str, config: ConfigSelectUnionT) -> Sequence[str]:
+def get_select_values(select_key: str, config: ConfigSelectUnionT) -> list[str]:
     """Return list of values (even if directive is a scalar value) for a 'select' configuration directive key.
 
     Returns an empty list if the key is not found in the configuration.
@@ -670,7 +670,7 @@ def get_select_values(select_key: str, config: ConfigSelectUnionT) -> Sequence[s
     return [str(v) for v in values]
 
 
-def get_select_values_and_cond(select_key: str, config_select: ConfigSelectUnionT) -> tuple[Sequence[str], Literal["=", "<>"]]:
+def get_select_values_and_cond(select_key: str, config_select: ConfigSelectUnionT) -> tuple[list[str], Literal["=", "<>"]]:
     """Return a value list (even for a single item) and condition.
 
     Args:

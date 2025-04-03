@@ -174,8 +174,9 @@ The `select` directive is a set of key/value pairs that filter transactions incl
             - "Bank and Cash Accounts"
   ```
 
-Each option can be set to a single value or a list of values.
+Each option can be set to a single value or a list of values to match.
 The first entry can start with `!` to negate the condition.
+The first entry can start with `%` to match patterns with the SQL [LIKE](https://www.sqlite.org/lang_expr.html#the_like_glob_regexp_match_and_extract_operators)  operator.
 A `select` directive can be defined for the workbook and each worksheet.
 A workbook select will be applied to all worksheets and any worksheet select
 criteria will be merged with and override the workbook select.

@@ -1,0 +1,30 @@
+workbook:
+  worksheets:
+    "Memo blank":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_to: "2018-01"
+        memo: "%"
+    "Also Memo blank":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_to: "2018-01"
+        memo:
+        - "%"
+        - "%"
+    "Memo not blank":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_to: "2018-06"
+        memo: "!%"
+    "Also Memo not blank":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        date_to: "2018-06"
+        memo:
+        - "!%"
+        - "%"

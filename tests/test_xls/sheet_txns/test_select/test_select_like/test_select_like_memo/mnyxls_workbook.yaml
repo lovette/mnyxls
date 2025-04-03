@@ -1,0 +1,42 @@
+workbook:
+  worksheets:
+    "Memo 1%":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        memo: "%Memo 1%"
+    "Not Memo 1%":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        memo: "!%Memo 1%"
+    "Also Not Memo 1%":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        memo:
+        - "!%"
+        - "Memo 1%"
+    "Memo _0 or _1":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        memo:
+        - "%Memo _0"
+        - "%Memo _1"
+    "Also Memo _0 or _1":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        memo:
+        - "%"
+        - "Memo _0"
+        - "Memo _1"
+    "Not Memo _0 or _1":
+      sheet_type: "txns"
+      select:
+        account: "Visa"
+        memo:
+        - "!%"
+        - "Memo _0"
+        - "Memo _1"

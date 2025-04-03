@@ -171,15 +171,38 @@ def apply_txns_select_where(  # noqa: C901, PLR0912, PLR0915
         "txntype": "TxnType",
     }
 
+    # Fields that support LIKE matching
+    where_value_like = {"account", "payee", "memo"}
+
     for select_key, table_column in where_value_simple.items():
         values, cond = get_select_values_and_cond(select_key, select_config)
         if values:
-            q_select.where_value(table_column, values, cond)
+            if not values[0].startswith("%"):
+                q_select.where_value(table_column, values, cond)
+            elif select_key not in where_value_like:
+                raise MnyXlsConfigError(f"'select': '{select_key}': Field does not support LIKE condition.")
+            else:
+                if len(values) > 1 and values[0] == "%":
+                    values.pop(0)  # First list item is the operator
+
+                q_cond_or = q_select.where_cond
+                like_cond = "LIKE"
+
+                if len(values) > 1:
+                    q_cond_or = q_cond_or.where_or(negate=(cond != "="))  # Group conditions in an OR clause
+                else:
+                    like_cond = "LIKE" if cond == "=" else "NOT LIKE"
+
+                for v in values:
+                    if v == "%":
+                        q_cond_or.where_value(table_column, None, cond)
+                    else:
+                        q_cond_or.where_value(table_column, v.removeprefix("%"), like_cond)
 
     categories, cond = get_select_values_and_cond("category", select_config)
     if categories:
         # Nest conditions in an "... OR ..." or "NOT (... OR ...)" clause depending on negation
-        category_cond = q_select.where_cond.where_or(negate=cond == "<>")
+        category_cond = q_select.where_cond.where_or(negate=(cond != "="))
 
         for category_pair in categories:
             if category_pair.endswith(":"):
