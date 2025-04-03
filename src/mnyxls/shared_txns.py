@@ -166,6 +166,7 @@ def apply_txns_select_where(  # noqa: C901, PLR0912, PLR0915
         "account": "Account",
         "era": "T.`EraName`",
         "payee": "Payee",
+        "memo": "Memo",
         "txnclass": "TxnClass",
         "txntype": "TxnType",
     }

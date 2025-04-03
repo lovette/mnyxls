@@ -42,6 +42,7 @@ class WorksheetConfigSelectT(TypedDict):
     amount: NotRequired[ConfigSelectAmountT]
     category: NotRequired[str | list[str]]
     era: NotRequired[str | list[str]]
+    memo: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
     txnclass: NotRequired[str | list[str]]
     txntype: NotRequired[str | list[str]]
@@ -62,6 +63,7 @@ class WorksheetConfigSelectTxnsT(TypedDict):
     amount: NotRequired[ConfigSelectAmountT]
     category: NotRequired[str | list[str]]
     era: NotRequired[str | list[str]]
+    memo: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
     txnclass: NotRequired[str | list[str]]
     txntype: NotRequired[str | list[str]]
@@ -118,6 +120,7 @@ class ConfigRewriteSelectT(TypedDict):
     account: NotRequired[str | list[str]]
     amount: NotRequired[ConfigSelectAmountT]
     category: NotRequired[str | list[str]]
+    memo: NotRequired[str | list[str]]
     payee: NotRequired[str | list[str]]
     date_from: NotRequired[str]  # YYYY | YYYY-MM | YYYY-MM-DD
     date_to: NotRequired[str]  # YYYY | YYYY-MM | YYYY-MM-DD
