@@ -5,6 +5,7 @@ from __future__ import annotations
 import contextlib
 import logging
 import os
+import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -28,6 +29,11 @@ if TYPE_CHECKING:
 # pytest eventually cleans up the `tmp_path`.
 # THIS APPLIES TO ALL TESTS!
 USE_TMP_PATH = True
+
+# Set to True to overwrite `expected_result.xlsx` to the newly generated result *for all tests*.
+# This is useful when you want to update the expected results after changing the test data.
+# The new result is only copied if it has the same sheets and columns as the current expected result.
+RESET_EXPECTED_RESULT_XLS = False
 
 
 # IMPORTANT!
@@ -283,12 +289,13 @@ def tmp_path_cwd(
             os.chdir(test_cwd)
 
 
-def assert_compare_xlsx(result_path: Path, expected_path: Path) -> None:  # noqa: C901, PLR0915
+def assert_compare_xlsx(result_path: Path, expected_path: Path, compare_cells: bool = True) -> None:  # noqa: C901, PLR0915
     """Compare two xlsx files.
 
     Args:
         result_path (Path): Path to test result workbook.
         expected_path (Path): Path to expected test result workbook.
+        compare_cells (bool): If True, compare cells in the worksheets; defaults to True.
     """
 
     def _compare_cell(sheetname: str, result_cell: Cell | MergedCell, expected_cell: Cell | MergedCell) -> None:
@@ -377,7 +384,15 @@ def assert_compare_xlsx(result_path: Path, expected_path: Path) -> None:  # noqa
         expected_ws = expected_wb[sheetname]
 
         _compare_columns(sheetname, result_ws, expected_ws)
-        _compare_rows(sheetname, result_ws, expected_ws)
+
+        # Cells are not compared if we're updating expected results.
+        # (This is a sanity check to ensure the sheets match in structure but not data.)
+        if compare_cells and not RESET_EXPECTED_RESULT_XLS:
+            _compare_rows(sheetname, result_ws, expected_ws)
+
+    if RESET_EXPECTED_RESULT_XLS:
+        expected_path.unlink()
+        shutil.copy(result_path, expected_path)
 
 
 def create_and_compare_workbook(  # noqa: PLR0913

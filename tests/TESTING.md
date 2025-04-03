@@ -27,6 +27,10 @@ after (temporarily) changing the `tmp_path` argument of `create_and_compare_work
 When the test is run, the generated `result.xlsx` workbook will be saved in the test directory and can
 be renamed.
 
+The `expected_result.xlsx` workbook for each test can be reset after test data is changed by setting
+`RESET_EXPECTED_RESULT_XLS = True` in `testutils.py` module. This will overwrite the expected result
+with the new result if it has the same structure (sheets and columns) as the current expected result.
+
 ## Test working directory
 
 In order to keep the `tests` directory clean, the working directory for each test is set to `tmp_path`
