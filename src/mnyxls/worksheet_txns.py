@@ -11,7 +11,7 @@ from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd
 from .report import TxnType
 from .shared import config_warning, pd_read_sql, validate_config_typed_dict
-from .shared_txns import apply_txns_select_where
+from .shared_txns import SELECT_AMOUNT_SUM_EXPR, apply_txns_select_where
 from .worksheet import WORKSHEET_COLWIDTH_MAX, MoneyWorksheet
 from .worksheet_txns_base import MoneyWorksheetTxnsBase
 
@@ -152,7 +152,7 @@ class MoneyWorksheetTxns(MoneyWorksheetTxnsBase):
                 drop_cols.extend(("Num", "Date", "Amount", "Memo", "Split", "C"))  # these don't make sense for txn groups
                 self.date_number_format = "mmm-yyyy"
                 q_select.column_expr("strftime('%Y-%m', `Date`)", named=f"`{date_col}`")
-                q_select.column_expr("SUM(`Amount`)", named="Amount")
+                q_select.column_expr(SELECT_AMOUNT_SUM_EXPR, named="Amount")
                 q_select.group_by([f"`{date_col}`", "Payee", "Category", "Subcategory", "TxnType", "TxnClass"])
             else:
                 config_warning("Unrecognized option.", self.workbook.config, (*self.config_keys, "consolidate", consolidate))

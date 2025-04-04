@@ -15,7 +15,7 @@ from .dbsqlite import db_list_eras
 from .dbviews import VIEW_TXNS_WITHTYPEANDCLASS
 from .mysqlstmt_selectand import SelectAnd
 from .shared import MnyXlsConfigError, MnyXlsRuntimeError, pd_read_sql, validate_config_typed_dict
-from .shared_txns import apply_txns_select_where
+from .shared_txns import SELECT_AMOUNT_SUM_EXPR, apply_txns_select_where
 from .worksheet import (
     FORMAT_ALIGN_LEFT,
     FORMAT_BOLD_FONT,
@@ -321,7 +321,7 @@ class MoneyWorksheetTxnsPivot(MoneyWorksheetTxnsBase):
                 groupby_columns[i] = f"T.{groupby_columns[i]}"
 
         q_select.column(select_columns)
-        q_select.column_expr("SUM(`Amount`)", named="Amount")
+        q_select.column_expr(SELECT_AMOUNT_SUM_EXPR, named="Amount")
 
         apply_txns_select_where(conn, q_select, self.worksheet_config)
 

@@ -30,6 +30,11 @@ if typing.TYPE_CHECKING:
 # Regular expression to match `select` amount specifications such as "<MM.NN".
 RE_AMOUNT = re.compile(r"([<>=!]+)\s*(-?[\d,.]+)")
 
+# It is well known that decimal numbers (currency) and floating point arithmetic don't mix well.
+# For example, `SUM(Amount)` can yield "-1.3855583347322e-12" instead of "0.0".
+# Ideally, we would use the SQLite "decimal" extension, but it is only available in the SQLite CLI binary.
+# Our quick and dirty solution is to simply round to 4 decimal places.
+SELECT_AMOUNT_SUM_EXPR = "ROUND(SUM(`Amount`), 4)"
 
 ######################################################################
 # Helper functions
