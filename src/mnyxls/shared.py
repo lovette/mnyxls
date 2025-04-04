@@ -248,9 +248,9 @@ def pd_read_sql(  # noqa: C901
         if isinstance(q, Select):
             for col in currency_cols:
                 select_col = q.get_column(col)
-                if select_col is not None:
-                    q.remove_column(select_col)
-                    q.column(f"CAST({select_col.expr} AS TEXT)", named=col)
+                assert select_col is not None, f"Currency column not found; did you 'SELECT {col}'?"
+                q.remove_column(select_col)
+                q.column(f"CAST({select_col.expr} AS TEXT)", named=col)
 
     sql, params = q.sql() if isinstance(q, Stmt) else (q, [])
 
