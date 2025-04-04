@@ -15,7 +15,7 @@ import pandas as pd
 import yaml
 from click import ClickException
 from dateutil.relativedelta import relativedelta
-from mysqlstmt import Select
+from mysqlstmt import Select, Stmt
 
 from .currencydecimal import currency_from_value
 
@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     import sqlite3
     from io import TextIOWrapper
 
-    from mysqlstmt import Stmt
     from pandas.api.typing import NAType
 
     from .configtypes import (
@@ -195,7 +194,7 @@ def read_config_file(config_path: Path) -> dict[str, Any]:
 
 def pd_read_sql(  # noqa: C901
     conn: sqlite3.Connection,
-    q: Stmt,
+    q: Stmt | str,
     date_cols: Sequence[str] | dict[str, str] | None = None,
     currency_cols: Sequence[str] | None = None,
     **kwargs,
@@ -204,7 +203,7 @@ def pd_read_sql(  # noqa: C901
 
     Args:
         conn (sqlite3.Connection): SQLite connection.
-        q (Stmt): mysqlstmt
+        q (Stmt | str): mysqlstmt or SQl query to execute.
         date_cols (Sequence[str] | None): Columns to convert to `datetime.date`.
             Can be a dictionary of columns to `parse_dates` format.
         currency_cols (Sequence[str] | None): Columns to convert to CurrencyDecimal.
@@ -253,7 +252,7 @@ def pd_read_sql(  # noqa: C901
                     q.remove_column(select_col)
                     q.column(f"CAST({select_col.expr} AS TEXT)", named=col)
 
-    sql, params = q.sql()
+    sql, params = q.sql() if isinstance(q, Stmt) else (q, [])
 
     df_sql = pd.read_sql(
         sql,
