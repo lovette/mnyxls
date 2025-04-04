@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 
 
 WORKSHEET_NAME_LEN = 31  # Excel sheet names limited to 31 chars
-WORKSHEET_DEFAULT_FORMAT_DATE = "m/d/yy"  # Excel format string
+WORKSHEET_DEFAULT_FORMAT_DATE = "mm-dd-yy"  # Excel format string
 WORKSHEET_DEFAULT_FORMAT_AMOUNT = "$#,##0.00_);[Red]($#,##0.00)"
 WORKSHEET_NAME_ILLEGAL_CHARS = tuple(r"*/\?*[]")  # Excel sheet names cannot contain these characters
 WORKSHEET_CURRENCY_PADDING = 3  # Add space for the '$()' that Excel includes for currency values

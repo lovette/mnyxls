@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING
 import pytest
 from openpyxl import load_workbook
 
+from mnyxls.worksheet import WORKSHEET_DEFAULT_FORMAT_DATE
+
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
 
@@ -317,7 +319,10 @@ def assert_compare_xlsx(result_path: Path, expected_path: Path, compare_cells: b
                 pytrace=False,
             )
 
-        if result_cell.number_format != expected_cell.number_format:
+        # We changed `WORKSHEET_DEFAULT_FORMAT_DATE` and old `expected_result.xlsx` have the previous format.
+        if result_cell.number_format != expected_cell.number_format and (
+            result_cell.number_format == WORKSHEET_DEFAULT_FORMAT_DATE and expected_cell.number_format != "m/d/yy"
+        ):
             pytest.fail(
                 f"{sheetname}[{result_cell.coordinate}] number_format does not match; "
                 f"Expected '{expected_cell.number_format}' != '{result_cell.number_format}'",
