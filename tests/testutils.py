@@ -307,21 +307,27 @@ def assert_compare_xlsx(result_path: Path, expected_path: Path, compare_cells: b
                 pytrace=False,
             )
 
-        if repr(result_cell.fill) != repr(expected_cell.fill):
+        # We don't compare `fgColor` because Excel uses a slightly different `color` when workbook is saved manually.
+        if repr(result_cell.fill.bgColor) != repr(expected_cell.fill.bgColor):
             pytest.fail(
                 f"{sheetname}[{result_cell.coordinate}] fill properties do not match",
                 pytrace=False,
             )
 
-        if repr(result_cell.font) != repr(expected_cell.font):
+        # Compare basic font properties so workbooks can be adjusted manually in Excel,
+        # which will set properties such as `name`, `family` and `sz`.
+        if result_cell.font.b != expected_cell.font.b:
             pytest.fail(
-                f"{sheetname}[{result_cell.coordinate}] font properties do not match",
+                f"{sheetname}[{result_cell.coordinate}] font properties do not match: BOLD",
                 pytrace=False,
             )
 
-        # We changed `WORKSHEET_DEFAULT_FORMAT_DATE` and old `expected_result.xlsx` have the previous format.
-        if result_cell.number_format != expected_cell.number_format and (
-            result_cell.number_format == WORKSHEET_DEFAULT_FORMAT_DATE and expected_cell.number_format != "m/d/yy"
+        # 1. We changed `WORKSHEET_DEFAULT_FORMAT_DATE` and old `expected_result.xlsx` have the previous format.
+        # 2. Excel escapes format strings with a backslash when workbook is saved manually.
+        if (
+            result_cell.number_format != expected_cell.number_format
+            and (result_cell.number_format == WORKSHEET_DEFAULT_FORMAT_DATE and expected_cell.number_format != "m/d/yy")
+            and result_cell.number_format != expected_cell.number_format.replace("\\", "")
         ):
             pytest.fail(
                 f"{sheetname}[{result_cell.coordinate}] number_format does not match; "
