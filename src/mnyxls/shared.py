@@ -37,8 +37,7 @@ UNION_PART_TYPES = {
     "bool": bool,
     "int": int,
     "float": float,
-    "pathlib.Path": Path,  # Python 3.12
-    "pathlib._local.Path": Path,  # Python 3.13
+    "pathlib.Path": Path,
     "str": str,
 }
 

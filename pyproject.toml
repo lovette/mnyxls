@@ -7,7 +7,7 @@ name = "mnyxls"
 version = "0.8.1-dev"
 description = "Create a SQLite database and/or Microsoft Excel workbook from Microsoft Money reports."
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 
 dependencies = [
   "click",
@@ -37,8 +37,8 @@ mnyxls = "mnyxls.__main__:cli"
 [tool.ruff]
 line-length = 150
 
-# Always generate Python 3.12-compatible code.
-target-version = "py312"
+# Always generate Python 3.14-compatible code.
+target-version = "py314"
 
 # https://docs.astral.sh/ruff/rules/
 [tool.ruff.lint]
@@ -77,7 +77,7 @@ pythonpath = "src"
 [tool.pyright]
 include = ["src", "tests"]
 typeCheckingMode = "standard"
-pythonVersion = "3.12"
+pythonVersion = "3.14"
 strictListInference = true
 strictDictionaryInference = true
 strictSetInference = true
