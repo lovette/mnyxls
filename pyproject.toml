@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mnyxls"
-version = "0.0.1-dev"
+version = "0.8.1-dev"
 description = "Create a SQLite database and/or Microsoft Excel workbook from Microsoft Money reports."
 readme = "README.md"
 requires-python = ">=3.12"
