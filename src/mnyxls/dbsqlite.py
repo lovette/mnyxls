@@ -797,7 +797,8 @@ def _db_insert_account_balances(conn: sqlite3.Connection, reports: dict[ReportTy
     df_accounts["OpenedDate"] = pd.to_datetime(df_accounts["OpenedDate"])
     df_accounts["TxnDateMin"] = pd.to_datetime(df_accounts["TxnDateMin"])
 
-    df_accounts["TxnDateMin"] = df_accounts[select_dates].min(axis=1).dt.date  # date(min(OpenedDate, TxnDateMin))
+    # Convoluted but silences type checking
+    df_accounts["TxnDateMin"] = pd.to_datetime(df_accounts[select_dates].min(axis=1)).dt.date
 
     firsttxn_dates = df_accounts.set_index("Account")["TxnDateMin"].to_dict()
 

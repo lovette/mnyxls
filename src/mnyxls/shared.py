@@ -5,7 +5,7 @@ import logging
 import re
 import types
 import typing
-from collections.abc import Container, Mapping, Sequence
+from collections.abc import Container, Hashable, Mapping, Sequence
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, get_origin, get_type_hints, is_typeddict
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     import sqlite3
     from io import TextIOWrapper
 
+    from pandas._typing import Dtype
     from pandas.api.typing import NAType
 
     from .configtypes import (
@@ -211,7 +212,7 @@ def pd_read_sql(  # noqa: C901
     Returns:
         DataFrame
     """
-    dtypes: dict[str, Any] = {}
+    dtypes: dict[Hashable, Dtype] = {}
     parse_dates = None
 
     if date_cols:

@@ -7,7 +7,7 @@ from datetime import datetime
 from enum import Enum, auto, unique
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, NoReturn
 
 import numpy as np
 import pandas as pd
@@ -16,8 +16,10 @@ from .currencydecimal import currency_from_value
 from .shared import MnyXlsRuntimeError, resolve_rel_path
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterator, Sequence
+    from collections.abc import Callable, Hashable, Iterator, Sequence
     from datetime import date
+
+    from pandas._typing import Dtype
 
     from .configtypes import MainConfigFileT
 
@@ -431,7 +433,7 @@ class MoneyReport(ABC):
             pd.DataFrame: _description_
         """
         header_row_lineno = None
-        dtypes: dict[str, Any] = {}
+        dtypes: dict[Hashable, Dtype] = {}
         converters: dict[str, Callable] = {}
         currency_columns = self.currency_columns or []
 

@@ -8,16 +8,19 @@ Usage:
 
 import random
 import sys
-from collections.abc import Mapping, Sequence
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 import click
 import numpy as np
 import pandas as pd
 
 from mnyxls.currencydecimal import CurrencyDecimal, currency_from_value
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 CHECKING_ACCOUNT = "Checking"  # source of income and transfers
 SAVINGS_ACCOUNT = "Savings"

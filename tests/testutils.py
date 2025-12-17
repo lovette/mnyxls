@@ -237,7 +237,7 @@ def assert_no_caplog_warnings(caplog: pytest.LogCaptureFixture) -> None:
 def tmp_path_cwd(
     tmp_path: Path | None,
     tmp_path_locals: Sequence[str | Path] | None = None,
-) -> Generator[Path, None, None]:
+) -> Generator[Path]:
     """Change the current working directory to the given path.
 
     When yielded, `tmp_path_locals` will contain symlink paths to the local files.
@@ -281,7 +281,7 @@ def tmp_path_cwd(
                 # Create symlink to the file in the test working directory.
                 # If `dst_path` is a symlink, `exists` checks the target exists unless `follow_symlinks=False`.
                 if not dst_path.exists() and not dst_path.exists(follow_symlinks=False):
-                    os.symlink(src_path, dst_path)
+                    dst_path.symlink_to(src_path)
                     tmp_path_locals[i] = dst_path
 
     try:

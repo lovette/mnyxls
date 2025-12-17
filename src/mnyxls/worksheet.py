@@ -218,7 +218,7 @@ class MoneyWorksheet(ABC):
         widths: dict[str, int] = {}
 
         for cell in self.iter_header_cells(1):
-            column_letter, row_idx = coordinate_from_string(cell.coordinate)  # handles merged cells
+            column_letter, _row_idx = coordinate_from_string(cell.coordinate)  # handles merged cells
             widths[str(cell.value)] = int(self.pyxl_worksheet.column_dimensions[column_letter].width)
 
         return widths
@@ -301,6 +301,7 @@ class MoneyWorksheet(ABC):
         # Sanity check that we can map all DataFrame index and column names
         for col in self.df_worksheet.index.names:
             if col is not None:  # RangeIndex values are unnamed integers
+                assert isinstance(col, str)
                 assert header_map.get(col) is not None
         for col in self.df_worksheet.columns:
             assert header_map.get(col) is not None
@@ -604,8 +605,9 @@ class MoneyWorksheet(ABC):
         # Replace header values with more user-friendly values
         # This is done just before the workbook is save so that worksheet columns names
         # match dataframe columns until the very end.
+        # `MergedCell` does not have a `value` property.
         for cell in self.iter_header_cells():
-            if isinstance(cell.value, str) and cell.value in FRIENDLY_COLUMN_NAMES:
+            if isinstance(cell, Cell) and isinstance(cell.value, str) and cell.value in FRIENDLY_COLUMN_NAMES:
                 cell.value = FRIENDLY_COLUMN_NAMES[cell.value]
 
     def prepare_to_excel(self) -> None:
@@ -749,7 +751,7 @@ class MoneyWorksheet(ABC):
         max_level: int | None = None,
         skipmerged: bool = True,
         skipnovalue: bool = True,
-    ) -> Generator[Cell | MergedCell, None, None]:
+    ) -> Generator[Cell | MergedCell]:
         """Produces cells from the worksheet header, column by column, row by row.
 
         Iterates row-by-row in multi-row headers if `max_level` is greater than `level`.
@@ -796,7 +798,7 @@ class MoneyWorksheet(ABC):
         header_levels: int | None = None,
         skipmerged: bool = True,
         raise_missing_header: bool = True,
-    ) -> Generator[Cell | MergedCell, None, None]:
+    ) -> Generator[Cell | MergedCell]:
         """Produces cells from a worksheet header column, by row.
 
         Column can be identified by an index, header or letter.
@@ -851,7 +853,7 @@ class MoneyWorksheet(ABC):
         header_levels: int | None = None,
         skipmerged: bool = True,
         raise_missing_header: bool = True,
-    ) -> Generator[Cell | MergedCell, None, None]:
+    ) -> Generator[Cell | MergedCell]:
         """Produces cells from a worksheet data column, by row.
 
         Column can be identified by an index, header or letter.
@@ -902,7 +904,7 @@ class MoneyWorksheet(ABC):
         idx: int | None = None,
         cell: Cell | MergedCell | None = None,
         skipmerged: bool = True,
-    ) -> Generator[Cell | MergedCell, None, None]:
+    ) -> Generator[Cell | MergedCell]:
         """Produces cells from worksheet index columns, by column.
 
         The first `index_levels` columns are index columns.
@@ -939,7 +941,7 @@ class MoneyWorksheet(ABC):
         idx: int | None = None,
         cell: Cell | MergedCell | None = None,
         skipmerged: bool = True,
-    ) -> Generator[Cell | MergedCell, None, None]:
+    ) -> Generator[Cell | MergedCell]:
         """Produces cells from worksheet data columns, by column.
 
         All columns after the first `index_levels` columns are data columns.

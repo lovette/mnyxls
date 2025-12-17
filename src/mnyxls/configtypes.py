@@ -6,7 +6,7 @@
 # https://github.com/python/cpython/issues/97727
 
 from collections.abc import Mapping, Sequence
-from datetime import date
+from datetime import date  # noqa: TC003
 from pathlib import Path
 from typing import NotRequired, TypedDict
 

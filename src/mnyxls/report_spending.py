@@ -215,7 +215,7 @@ class MoneyReportIncomeAndSpending(MoneyReportMixinAsOfColumns, MoneyReport):
     ######################################################################
     # Helper methods
 
-    def _get_column_txntypes(self, df_report: pd.DataFrame, drop_categories: list[str]) -> list[str | None]:
+    def _get_column_txntypes(self, df_report: pd.DataFrame, drop_categories: list[str]) -> pd.Series:
         """Group accounts by type and subtype as defined in the report.
 
         Args:
@@ -263,7 +263,7 @@ class MoneyReportIncomeAndSpending(MoneyReportMixinAsOfColumns, MoneyReport):
 
         assert len(column_txntypes) == len(df_report)
 
-        return column_txntypes
+        return pd.Series(column_txntypes)
 
     def _check_totals(self, df_report: pd.DataFrame, report_grand_total: CurrencyDecimal) -> None:
         """Check that totals are correct."""
