@@ -27,5 +27,6 @@
 		],
 		"python.analysis.diagnosticMode": "workspace",
 		"git.enabled": false,
+		"makefile.configureOnOpen": false,
 	}
 }
