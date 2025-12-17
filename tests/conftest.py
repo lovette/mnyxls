@@ -45,9 +45,7 @@ def runner() -> CliRunner:
     Returns:
         CliRunner
     """
-    # `mix_stderr` is going away in Click 8.2...
-    # https://github.com/pallets/click/pull/2523
-    return CliRunner(mix_stderr=False)
+    return CliRunner()
 
 
 @pytest.fixture
