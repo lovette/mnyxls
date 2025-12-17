@@ -17,11 +17,17 @@ jobs:
         python-version: ["3.14"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.18"
           python-version: ${{ matrix.python-version }}
 
       - name: Display Python version
@@ -30,17 +36,12 @@ jobs:
       - name: Create virtualenv
         run: make virtualenv
 
-      - name: Generate requirements.txt
+      - name: Install virtualenv packages
         run: |
-          source "$HOME"/.virtualenvs/mnyxls/bin/activate
-          make requirements
-
-      - name: Install requirements
-        run: |
-          source "$HOME"/.virtualenvs/mnyxls/bin/activate
+          source "$(dirname $(uv python find))"/activate
           make install-dev
 
       - name: Run tests
         run: |
-          source "$HOME"/.virtualenvs/mnyxls/bin/activate
+          source "$(dirname $(uv python find))"/activate
           make tests
