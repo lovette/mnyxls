@@ -1,8 +1,17 @@
-__pycache__
-.ruff_cache
-.venv
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
 *.egg-info
+
+# Virtual environments
+.venv
+
+# Project files
 *.sublime-workspace
-build
+.ruff_cache
+example/
 NOTES.md
 PROMPTS.md

@@ -5,16 +5,20 @@ Create a Microsoft Excel workbook and/or a SQLite database from Microsoft Money 
 
 ## Usage
 
-Running:
+The easiest way to install and run this tool is using the **uv** Python package and project manager.
+[Install **uv**](https://docs.astral.sh/uv/getting-started/installation/) if you do not have it already and then invoke `mnyxls` using the `uvx` command:
+
+    uvx git+https://github.com/lovette/mnyxls --version
+
+
+## Setup development environment
+
+Create a Python virtual environment and install development requirements in the source directory.
 
     cd mnyxls
-    [activate virtual environment]
-    (mnyxls) % mnyxls -vv "Account transactions.csv"
-
-Will create:
-
-- "Account transactions.sqlite3"
-- "Account transactions.xlsx"
+    make virtualenv install-dev
+    source .venv/bin/activate
+    mnyxls --version
 
 
 ## Microsoft Money Reports

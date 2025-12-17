@@ -13,6 +13,7 @@
 			}
 		},
 		"files.exclude": {
+			".venv": true,
 			".ruff_cache": true,
 			"*.sublime-*": true,
 			"**/__pycache__": true,
@@ -20,6 +21,7 @@
 			"build": true,
 		},
 		"python.analysis.exclude": [
+			".venv",
 			"build",
 			"**/*.egg-info"
 		],

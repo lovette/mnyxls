@@ -1,6 +1,4 @@
-VENVNAME := $(shell basename $(CURDIR))
-VENVROOT := ${HOME}/.virtualenvs
-VENVDIR := ${VENVROOT}/${VENVNAME}
+VENVDIR := .venv
 
 ERROR_NO_VIRTUALENV = $(error Python virtualenv is not active, activate first)
 ERROR_ACTIVE_VIRTUALENV = $(error Python virtualenv is active, deactivate first)
@@ -19,15 +17,11 @@ help:
 ##@ Python virtualenv
 
 .PHONY: virtualenv
-virtualenv:  ## Create venv directory and install pip
+virtualenv:  ## Create venv directory
 ifdef VIRTUAL_ENV
 	$(ERROR_ACTIVE_VIRTUALENV)
 endif
-	python3 -m venv --system-site-packages --prompt ${VENVNAME} ${VENVDIR}
-	${VENVDIR}/bin/python3 -m pip install --require-virtualenv --upgrade --no-cache-dir pip pip-tools wheel
-	@echo
-	@echo "EMPTY Python virtualenv named '${VENVNAME}' created in ${VENVROOT}"
-	@echo "To activate: source ${VENVDIR}/bin/activate"
+	uv venv
 	@echo "To install packages: 'make install' or 'make install-dev'"
 
 .PHONY: rmvirtualenv
@@ -40,61 +34,19 @@ endif
 
 
 ############################
-##@ Python install
+##@ Install
 
 .PHONY: install
-install:  ## Install project packages and script
-	python3 -m pip install --require-virtualenv --upgrade -r requirements.txt .
+install:  ## Install project script to be run without activating the virtual environment
+	uv tool install --reinstall .
 
 .PHONY: install-dev
 install-dev:  ## Install project packages and script for development
-	python3 -m pip install --require-virtualenv --upgrade -r requirements.txt -r requirements-dev.txt -e .
+	uv sync
 
-
-############################
-##@ Python requirements
-#
-# Use pip-compile to generate requirements[-dev].txt based on `pyproject.toml` dependencies.
-# https://pypi.org/project/pip-tools/
-#
-# To update requirements, run:
-#
-#    make requirements
-#
-# To install and update packages, run:
-#
-#   make pip-sync
-# 	-or-
-#   make pip-sync-dev
-
-requirements.txt: pyproject.toml
-ifndef VIRTUAL_ENV
-	$(ERROR_NO_VIRTUALENV)
-endif
-	python3 -m piptools compile --upgrade --strip-extras --resolver=backtracking --quiet -o requirements.txt pyproject.toml
-
-requirements-dev.txt: requirements.txt
-ifndef VIRTUAL_ENV
-	$(ERROR_NO_VIRTUALENV)
-endif
-	python3 -m piptools compile --upgrade --strip-extras --resolver=backtracking --quiet --extra dev --constraint requirements.txt -o requirements-dev.txt pyproject.toml
-
-.PHONY: requirements
-requirements: requirements-dev.txt  ## Generate requirements[-dev].txt based on `pyproject.toml` dependencies.
-
-.PHONY: pip-sync
-pip-sync: requirements.txt  ## Generate requirements and synchronize packages
-ifndef VIRTUAL_ENV
-	$(ERROR_NO_VIRTUALENV)
-endif
-	python3 -m piptools sync requirements.txt
-
-.PHONY: pip-sync-dev
-pip-sync-dev: requirements-dev.txt  ## Generate requirements and synchronize packages for development
-ifndef VIRTUAL_ENV
-	$(ERROR_NO_VIRTUALENV)
-endif
-	python3 -m piptools sync requirements-dev.txt requirements.txt
+.PHONY: uninstall
+uninstall:  ## Uninstall project script from system-wide access
+	uv tool uninstall mnyxls
 
 
 ############################
