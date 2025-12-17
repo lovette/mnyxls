@@ -26,5 +26,6 @@
 			"**/*.egg-info"
 		],
 		"python.analysis.diagnosticMode": "workspace",
+		"git.enabled": false,
 	}
 }
